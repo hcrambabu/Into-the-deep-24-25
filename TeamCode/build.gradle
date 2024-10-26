@@ -14,11 +14,15 @@
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
+apply plugin: 'kotlin-android'
 
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
 
     packagingOptions {
+        jniLibs {
+            pickFirsts += ['**/*.so', '**/*.so']
+        }
         jniLibs.useLegacyPackaging true
     }
 }
@@ -28,11 +32,21 @@ dependencies {
     implementation "com.acmerobotics.roadrunner:ftc:0.1.12"
     implementation "com.acmerobotics.roadrunner:core:1.0.0"
     implementation "com.acmerobotics.roadrunner:actions:1.0.0"
-    implementation "com.acmerobotics.dashboard:dashboard:0.4.14"
-
+    implementation "com.acmerobotics.dashboard:dashboard:0.4.16"
 }
 repositories {
     maven {
         url = 'https://maven.brott.dev/'
+    }
+}
+
+// Added this block:
+afterEvaluate { project ->
+    if (project.hasProperty("kotlin")) {
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
     }
 }

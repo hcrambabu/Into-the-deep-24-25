@@ -18,37 +18,29 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 class FirstKotlinOp: LinearOpMode() {
 
     val runtime: ElapsedTime = ElapsedTime()
-    lateinit var colorSensor: RevColorSensorV3
     lateinit var dcMotor: DcMotor
-    lateinit var imu: IMU
+
 
     fun initialize() {
         telemetry.addData("Staus", "FirstKotlinOp Initialized")
-        colorSensor = hardwareMap.get(RevColorSensorV3::class.java, "color1")
         dcMotor = hardwareMap.get(DcMotor::class.java, "leftFront")
-        imu = hardwareMap.get(IMU::class.java, "imu")
+        telemetry.update();
     }
 
     @OptIn(ExperimentalStdlibApi::class)
     fun runInLoop() {
         telemetry.addData("Status", "Runtime: " + runtime.toString())
-        telemetry.addData("Color", "${colorSensor.alpha()}, ${colorSensor.red()}, ${colorSensor.green()}, ${colorSensor.blue()}")
-        telemetry.addData("ARGB", "${colorSensor.argb().toHexString()}")
-        telemetry.addData("Distance", "${colorSensor.getDistance(DistanceUnit.MM)}")
-        telemetry.addData("Motor", dcMotor.currentPosition)
-        telemetry.addData("IMY", imu.getRobotAngularVelocity(AngleUnit.DEGREES))
+        telemetry.addData("left_stick_y", "Value: " + gamepad1.left_stick_y)
+        dcMotor.setPower(gamepad1.left_stick_y.toDouble());
 
         telemetry.update()
     }
 
     override fun runOpMode() {
-        println("In runOpMode 1")
         initialize()
-        println("In runOpMode Atfer initialize")
         // Wait for the game to start (driver presses PLAY)
         waitForStart()
         runtime.reset()
-        println("In runOpMode Atfer Start")
         while (opModeIsActive()) {
             runInLoop()
         }

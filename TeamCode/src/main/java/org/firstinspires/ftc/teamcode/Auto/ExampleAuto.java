@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -20,6 +21,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
 @Autonomous(name = "BLUE_TEST_AUTO_PIXEL", group = "Autonomous")
+@Disabled
 public class ExampleAuto extends LinearOpMode {
     public class Lift {
         private DcMotorEx lift;

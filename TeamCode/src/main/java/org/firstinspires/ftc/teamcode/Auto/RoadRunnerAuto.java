@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode.Auto;
 // Non-RR imports
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
@@ -22,6 +23,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Robot.Drive;
 @Config
 @Autonomous(name="RoadRunnerAuto", group="Robot")
+@Disabled
 // Don't edit!!!!!!!!!!!!!!!!!!!!!!
 public abstract class RoadRunnerAuto extends LinearOpMode {
     // instantiate your MecanumDrive at a particular pose.

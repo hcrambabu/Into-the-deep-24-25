@@ -1,41 +1,54 @@
 package org.firstinspires.ftc.teamcode.Teleop;
 
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_H_H_POS;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_H_V_POS;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_POS_0;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_POS_1;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_POS_2;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_V_BACK_POS;
+
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.anime.AnimeRobot;
 
-import java.security.acl.Group;
-
 @TeleOp(group = "Anime", name = "Anime: TeleOp")
 public class AnimeTeleOp extends LinearOpMode {
+
+    public static final double SLOW_RUN_MULTIPLIER = 0.2;
+
     DcMotor frontLeftMotor;
     DcMotor backLeftMotor;
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
 
     DcMotor liftLeft, liftRight, slideLeft, slideRight;
-    CRServo intakeServo;
-    Servo intakeLiftServo, dropServo;
+    CRServo intakeContinuousServo;
+    Servo intakeLiftServo, dropServo, intakeVerticalTurnServo, intakeHorizontalTurnServo, intakeClawServo;
 
     IMU imu;
     RevColorSensorV3 intakeColorSensor;
     HuskyLens intakeHuskuy;
 
-    double intakeLiftServoPos = 0.0;
+    double intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_0;
+    double intakeVerticalTurnServoPos = INTAKE_V_BACK_POS;
+    double intakeHorizontalTurnServoPos = INTAKE_H_H_POS;
+    double intakeClawServoPos = 0.0;
+
+    private ElapsedTime intakeDpadDownRuntime = new ElapsedTime();
 
     AnimeRobot robot;
 
     private void initialize() {
-        this.robot = new AnimeRobot(hardwareMap);
+        this.robot = new AnimeRobot(this, hardwareMap);
 
         this.frontLeftMotor = this.robot.getFrontLeftMotor();
         this.backLeftMotor = this.robot.getBackLeftMotor();
@@ -47,13 +60,21 @@ public class AnimeTeleOp extends LinearOpMode {
         this.slideLeft = this.robot.getSlideLeft();
         this.slideRight = this.robot.getSlideRight();
 
-        this.intakeServo = this.robot.getIntakeServo();
+        this.intakeContinuousServo = this.robot.getIntakeContinousServo();
         this.intakeLiftServo = this.robot.getIntakeLiftServo();
         this.dropServo = this.robot.getDropServo();
 
         this.imu = this.robot.getImu();
         this.intakeColorSensor = this.robot.getIntakeColorSensor();
         this.intakeHuskuy = this.robot.getIntakeHuskuy();
+
+        this.intakeVerticalTurnServo = this.robot.getIntakeVerticalTurnServo();
+        this.intakeHorizontalTurnServo = this.robot.getIntakeHorizontalTurnServo();
+        this.intakeClawServo = this.robot.getIntakeClawServo();
+
+        this.intakeVerticalTurnServo.setPosition(INTAKE_V_BACK_POS);
+        this.intakeHorizontalTurnServo.setPosition(INTAKE_H_H_POS);
+        this.intakeLiftServo.setPosition(INTAKE_LIFT_DOWN_POS_0);
     }
 
     private void addTelemetry() {
@@ -61,13 +82,15 @@ public class AnimeTeleOp extends LinearOpMode {
                 String.format("left: %7d, right:%7d", liftLeft.getCurrentPosition(), liftRight.getCurrentPosition()));
         telemetry.addData("Slide",
                 String.format("left: %7d, right:%7d", slideLeft.getCurrentPosition(), slideRight.getCurrentPosition()));
-        telemetry.addData("IntakeColor", String.format("R:%02X , G:%02X, B:%02X",
-                intakeColorSensor.red(), intakeColorSensor.green(), intakeColorSensor.blue()));
-        telemetry.addData("IntakeDistance", intakeColorSensor.getDistance(DistanceUnit.MM));
-        telemetry.addData("IntakeLeftServo", this.intakeLiftServoPos +"-"+intakeLiftServo.getPosition());
+//        telemetry.addData("IntakeColor", String.format("R:%02X , G:%02X, B:%02X",
+//                intakeColorSensor.red(), intakeColorSensor.green(), intakeColorSensor.blue()));
+//        telemetry.addData("IntakeDistance", intakeColorSensor.getDistance(DistanceUnit.MM));
+        telemetry.addData("IntakeLiftServo", intakeLiftServo.getPosition());
+        telemetry.addData("IntakeV", intakeVerticalTurnServo.getPosition());
+        telemetry.addData("IntakeH", intakeHorizontalTurnServo.getPosition());
+        telemetry.addData("Claw", intakeClawServo.getPosition());
         telemetry.addData("DropServo", dropServo.getPosition());
-        telemetry.addData("gamepad1 dpad", gamepad1.dpad_up + "" + gamepad1.dpad_down);
-        telemetry.addData("gamepad2 dpad", gamepad2.dpad_up + "" + gamepad2.dpad_down);
+        telemetry.addData("intakeDpadDownRuntime", intakeDpadDownRuntime.seconds());
     }
 
     private void runLoop() {
@@ -76,8 +99,12 @@ public class AnimeTeleOp extends LinearOpMode {
         handleIntake();
         handleLift();
         handleSlide();
+        handleStartButton();
+        handleBackButton();
         addTelemetry();
     }
+
+
 
     private void handleMecanum() {
         double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
@@ -93,6 +120,13 @@ public class AnimeTeleOp extends LinearOpMode {
         double frontRightPower = (y - x - rx) / denominator;
         double backRightPower = (y + x - rx) / denominator;
 
+        if (gamepad1.left_stick_button) {
+            frontLeftPower *= SLOW_RUN_MULTIPLIER;
+            backLeftPower *= SLOW_RUN_MULTIPLIER;
+            frontRightPower *= SLOW_RUN_MULTIPLIER;
+            backRightPower *= SLOW_RUN_MULTIPLIER;
+        }
+
         frontLeftMotor.setPower(frontLeftPower);
         backLeftMotor.setPower(backLeftPower);
         frontRightMotor.setPower(frontRightPower);
@@ -107,37 +141,79 @@ public class AnimeTeleOp extends LinearOpMode {
         slideRight.setPower(slidePower);
     }
 
+    private void handleStartButton() {
+        if(gamepad2.start) {
+            this.intakeClawServoPos = 1.0;
+            this.intakeHorizontalTurnServoPos = INTAKE_H_H_POS;
+            this.intakeVerticalTurnServoPos = 1.0;
+            this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_1;
+            intakeDpadDownRuntime.reset();
+        }
+    }
+
+    private void handleBackButton() {
+        if(gamepad2.back) {
+            this.intakeClawServoPos = 0.0;
+            this.intakeHorizontalTurnServoPos = INTAKE_H_H_POS;
+            this.intakeVerticalTurnServoPos = INTAKE_V_BACK_POS;
+            this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_0;
+
+            this.robot.getIntake().goBack();
+        }
+    }
+
     private void handleIntake() {
-        double intakeServoPower = gamepad2.right_trigger - gamepad2.left_trigger;
-        intakeServo.setPower(intakeServoPower);
+//        double intakeServoPower = gamepad2.right_trigger - gamepad2.left_trigger;
+//        intakeContinuousServo.setPower(intakeServoPower);
 
-        System.out.println(gamepad1.dpad_up + "" + gamepad1.dpad_down);
-        if(gamepad2.dpad_up) {
-            this.intakeLiftServoPos -= 0.02;
-        } else if (gamepad2.dpad_down) {
-            this.intakeLiftServoPos += 0.02;
+        // Intake Vertical Turn Servo
+        if(gamepad2.dpad_right) {
+            this.intakeVerticalTurnServoPos = INTAKE_V_BACK_POS;
+        } else if (gamepad2.dpad_left) {
+            this.intakeVerticalTurnServoPos = 1.0;
         }
 
-        if (gamepad2.dpad_left) {
-            this.intakeLiftServoPos = 1.0;
-        } else if (gamepad2.dpad_right) {
-            this.intakeLiftServoPos = 0.0;
+        // Intake Lift Servo
+        if (gamepad2.dpad_down) {
+            if(this.intakeLiftServo.getPosition() == INTAKE_LIFT_DOWN_POS_1 && intakeDpadDownRuntime.seconds() > 1.0) {
+                this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_2;
+            } else if(this.intakeLiftServo.getPosition() == INTAKE_LIFT_DOWN_POS_0) {
+                this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_1;
+                intakeDpadDownRuntime.reset();
+            }
+        } else if (gamepad2.dpad_up) {
+            this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_0;
         }
-        if(this.intakeLiftServoPos < 0.0)
-            this.intakeLiftServoPos = 0.0;
-        else if(this.intakeLiftServoPos > 1.0) {
-            this.intakeLiftServoPos = 1.0;
+
+        // Intake Horizontal Turn Servo
+        if(gamepad2.left_trigger > 0.5) {
+            this.intakeHorizontalTurnServoPos -= 0.01;
+        } else if (gamepad2.right_trigger > 0.5) {
+            this.intakeHorizontalTurnServoPos += 0.01;
         }
+        if(this.intakeHorizontalTurnServoPos > INTAKE_H_V_POS) {
+            this.intakeHorizontalTurnServoPos = INTAKE_H_V_POS;
+        } else if (this.intakeHorizontalTurnServoPos < 0.0) {
+            this.intakeHorizontalTurnServoPos = 0.0;
+        }
+
+        // Claw Servo
+        if(gamepad2.right_bumper) {
+            this.intakeClawServoPos = 0.0;
+        } else if (gamepad2.left_bumper) {
+            this.intakeClawServoPos = 1.0;
+        }
+
+        this.intakeClawServo.setPosition(this.intakeClawServoPos);
+        this.intakeVerticalTurnServo.setPosition(this.intakeVerticalTurnServoPos);
         this.intakeLiftServo.setPosition(this.intakeLiftServoPos);
+        this.intakeHorizontalTurnServo.setPosition(this.intakeHorizontalTurnServoPos);
     }
 
     private void handleLift() {
         double liftPower = -gamepad2.left_stick_y;
-//        if(liftPower > 0 && (liftLeft.getCurrentPosition() > 4000 || liftRight.getCurrentPosition() > 4000)) {
-//            liftPower = 0.1;
-//        } else if (liftPower < 0 && (liftLeft.getCurrentPosition() < 200 || liftRight.getCurrentPosition() < 200)) {
-//            liftPower = -0.1;
-//        }
+        liftPower = this.robot.getLift().checkLiftPower(liftPower);
+
         liftLeft.setPower(liftPower);
         liftRight.setPower(liftPower);
     }

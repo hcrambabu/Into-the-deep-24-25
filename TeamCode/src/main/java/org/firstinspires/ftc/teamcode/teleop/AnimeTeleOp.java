@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Teleop;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_H_H_POS;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_H_V_POS;
@@ -17,7 +17,6 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.anime.AnimeRobot;
 
 @TeleOp(group = "Anime", name = "Anime: TeleOp")

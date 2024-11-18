@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode.anime;
 
+import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriverRR;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -30,19 +33,20 @@ public class AnimeRobot {
     public static final double INTAKE_LIFT_DOWN_POS_1 = 0.45; //0.92; GB value
     public static final double INTAKE_LIFT_DOWN_POS_2 = 0.55; //1.0; GB value
 
+    public static final RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection =
+            RevHubOrientationOnRobot.LogoFacingDirection.DOWN;
+    public static final RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
+            RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
 
-    DcMotor frontLeftMotor;
-    DcMotor backLeftMotor;
-    DcMotor frontRightMotor;
-    DcMotor backRightMotor;
 
-    DcMotor liftLeft, liftRight, slideLeft, slideRight;
+    DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
+    DcMotorEx liftLeft, liftRight, slideLeft, slideRight;
     CRServo intakeContinousServo;
     Servo intakeLiftServo, dropServo, intakeVerticalTurnServo, intakeHorizontalTurnServo, intakeClawServo;
-
     IMU imu;
     RevColorSensorV3 intakeColorSensor;
     HuskyLens intakeHuskuy;
+    GoBildaPinpointDriverRR pinpoint;
     HardwareMap hardwareMap;
 
     Intake intake;
@@ -52,22 +56,26 @@ public class AnimeRobot {
 
     private ElapsedTime robotRuntime = new ElapsedTime();
 
-    public AnimeRobot(LinearOpMode opMode, HardwareMap hardwareMap) {
-        this.opMode = opMode;
-        this.hardwareMap = hardwareMap;
+    public GoBildaPinpointDriverRR getPinpoint() {
+        return pinpoint;
+    }
 
-        this.frontLeftMotor = hardwareMap.dcMotor.get("leftFront");
-        this.backLeftMotor = hardwareMap.dcMotor.get("leftBack");
-        this.frontRightMotor = hardwareMap.dcMotor.get("rightFront");
-        this.backRightMotor = hardwareMap.dcMotor.get("rightBack");
+    public AnimeRobot(LinearOpMode opMode) {
+        this.opMode = opMode;
+        this.hardwareMap = opMode.hardwareMap;
+
+        this.frontLeftMotor = hardwareMap.get(DcMotorEx.class, "leftFront");
+        this.backLeftMotor = hardwareMap.get(DcMotorEx.class, "leftBack");
+        this.frontRightMotor = hardwareMap.get(DcMotorEx.class, "rightFront");
+        this.backRightMotor = hardwareMap.get(DcMotorEx.class, "rightBack");
 
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        liftLeft = hardwareMap.dcMotor.get("liftLeft");
-        liftRight = hardwareMap.dcMotor.get("liftRight");
-        slideLeft = hardwareMap.dcMotor.get("slideLeft");
-        slideRight = hardwareMap.dcMotor.get("slideRight");
+        liftLeft = hardwareMap.get(DcMotorEx.class, "liftLeft");
+        liftRight = hardwareMap.get(DcMotorEx.class, "liftRight");
+        slideLeft = hardwareMap.get(DcMotorEx.class, "slideLeft");
+        slideRight = hardwareMap.get(DcMotorEx.class, "slideRight");
 
         liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
         slideLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -98,6 +106,7 @@ public class AnimeRobot {
         imu = hardwareMap.get(IMU.class, "imu");
         intakeColorSensor = hardwareMap.get(RevColorSensorV3.class, "intakeColor");
         intakeHuskuy = hardwareMap.get(HuskyLens.class, "intakeHusky");
+        pinpoint = hardwareMap.get(GoBildaPinpointDriverRR.class, "pinpoint");
 
         intakeVerticalTurnServo = hardwareMap.servo.get("intakeV");
         intakeHorizontalTurnServo = hardwareMap.servo.get("intakeH");
@@ -118,35 +127,35 @@ public class AnimeRobot {
         slideRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
-    public DcMotor getFrontLeftMotor() {
+    public DcMotorEx getFrontLeftMotor() {
         return frontLeftMotor;
     }
 
-    public DcMotor getBackLeftMotor() {
+    public DcMotorEx getBackLeftMotor() {
         return backLeftMotor;
     }
 
-    public DcMotor getFrontRightMotor() {
+    public DcMotorEx getFrontRightMotor() {
         return frontRightMotor;
     }
 
-    public DcMotor getBackRightMotor() {
+    public DcMotorEx getBackRightMotor() {
         return backRightMotor;
     }
 
-    public DcMotor getLiftLeft() {
+    public DcMotorEx getLiftLeft() {
         return liftLeft;
     }
 
-    public DcMotor getLiftRight() {
+    public DcMotorEx getLiftRight() {
         return liftRight;
     }
 
-    public DcMotor getSlideLeft() {
+    public DcMotorEx getSlideLeft() {
         return slideLeft;
     }
 
-    public DcMotor getSlideRight() {
+    public DcMotorEx getSlideRight() {
         return slideRight;
     }
 

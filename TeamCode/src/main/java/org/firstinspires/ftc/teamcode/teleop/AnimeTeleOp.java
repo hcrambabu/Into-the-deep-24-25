@@ -18,9 +18,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.anime.AnimeRobot;
+import org.firstinspires.ftc.teamcode.anime.BaseOpMode;
 
 @TeleOp(group = "Anime", name = "Anime: TeleOp")
-public class AnimeTeleOp extends LinearOpMode {
+public class AnimeTeleOp extends BaseOpMode {
 
     public static final double SLOW_RUN_MULTIPLIER = 0.2;
 
@@ -44,10 +45,9 @@ public class AnimeTeleOp extends LinearOpMode {
 
     private ElapsedTime intakeDpadDownRuntime = new ElapsedTime();
 
-    AnimeRobot robot;
-
-    private void initialize() {
-        this.robot = new AnimeRobot(this, hardwareMap);
+    @Override
+    public void initialize() {
+        super.initialize();
 
         this.frontLeftMotor = this.robot.getFrontLeftMotor();
         this.backLeftMotor = this.robot.getBackLeftMotor();
@@ -92,7 +92,7 @@ public class AnimeTeleOp extends LinearOpMode {
         telemetry.addData("intakeDpadDownRuntime", intakeDpadDownRuntime.seconds());
     }
 
-    private void runLoop() {
+    public void runLoop() throws InterruptedException {
         handleMecanum();
         handleDrop();
         handleIntake();
@@ -102,7 +102,6 @@ public class AnimeTeleOp extends LinearOpMode {
         handleBackButton();
         addTelemetry();
     }
-
 
 
     private void handleMecanum() {
@@ -141,7 +140,7 @@ public class AnimeTeleOp extends LinearOpMode {
     }
 
     private void handleStartButton() {
-        if(gamepad2.start) {
+        if (gamepad2.start) {
             this.intakeClawServoPos = 1.0;
             this.intakeHorizontalTurnServoPos = INTAKE_H_H_POS;
             this.intakeVerticalTurnServoPos = 1.0;
@@ -151,7 +150,7 @@ public class AnimeTeleOp extends LinearOpMode {
     }
 
     private void handleBackButton() {
-        if(gamepad2.back) {
+        if (gamepad2.back) {
             this.intakeClawServoPos = 0.0;
             this.intakeHorizontalTurnServoPos = INTAKE_H_H_POS;
             this.intakeVerticalTurnServoPos = INTAKE_V_BACK_POS;
@@ -166,7 +165,7 @@ public class AnimeTeleOp extends LinearOpMode {
 //        intakeContinuousServo.setPower(intakeServoPower);
 
         // Intake Vertical Turn Servo
-        if(gamepad2.dpad_right) {
+        if (gamepad2.dpad_right) {
             this.intakeVerticalTurnServoPos = INTAKE_V_BACK_POS;
         } else if (gamepad2.dpad_left) {
             this.intakeVerticalTurnServoPos = 1.0;
@@ -174,9 +173,9 @@ public class AnimeTeleOp extends LinearOpMode {
 
         // Intake Lift Servo
         if (gamepad2.dpad_down) {
-            if(this.intakeLiftServo.getPosition() == INTAKE_LIFT_DOWN_POS_1 && intakeDpadDownRuntime.seconds() > 1.0) {
+            if (this.intakeLiftServo.getPosition() == INTAKE_LIFT_DOWN_POS_1 && intakeDpadDownRuntime.seconds() > 1.0) {
                 this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_2;
-            } else if(this.intakeLiftServo.getPosition() == INTAKE_LIFT_DOWN_POS_0) {
+            } else if (this.intakeLiftServo.getPosition() == INTAKE_LIFT_DOWN_POS_0) {
                 this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_1;
                 intakeDpadDownRuntime.reset();
             }
@@ -185,19 +184,19 @@ public class AnimeTeleOp extends LinearOpMode {
         }
 
         // Intake Horizontal Turn Servo
-        if(gamepad2.left_trigger > 0.5) {
+        if (gamepad2.left_trigger > 0.5) {
             this.intakeHorizontalTurnServoPos -= 0.01;
         } else if (gamepad2.right_trigger > 0.5) {
             this.intakeHorizontalTurnServoPos += 0.01;
         }
-        if(this.intakeHorizontalTurnServoPos > INTAKE_H_V_POS) {
+        if (this.intakeHorizontalTurnServoPos > INTAKE_H_V_POS) {
             this.intakeHorizontalTurnServoPos = INTAKE_H_V_POS;
         } else if (this.intakeHorizontalTurnServoPos < 0.0) {
             this.intakeHorizontalTurnServoPos = 0.0;
         }
 
         // Claw Servo
-        if(gamepad2.right_bumper) {
+        if (gamepad2.right_bumper) {
             this.intakeClawServoPos = 0.0;
         } else if (gamepad2.left_bumper) {
             this.intakeClawServoPos = 1.0;
@@ -219,13 +218,12 @@ public class AnimeTeleOp extends LinearOpMode {
 
     private void handleDrop() {
         System.out.println(gamepad1.dpad_up + "" + gamepad1.dpad_down);
-        if(gamepad1.dpad_up) {
+        if (gamepad1.dpad_up) {
             this.dropServo.setPosition(0.0);
         } else if (gamepad1.dpad_down) {
             this.dropServo.setPosition(1.0);
         }
     }
-
 
     @Override
     public void runOpMode() throws InterruptedException {

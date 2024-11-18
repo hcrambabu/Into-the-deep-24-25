@@ -28,9 +28,10 @@ public class MeepMeep {
 //                .build());
 
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-24, -63, Math.toRadians(90)))
-//                        .strafeToLinearHeading(new Vector2d(-48, -48), Math.toRadians(45))
-                .setTangent(0)
-                        .splineTo(new Vector2d(-60, -60), Math.toRadians(45))
+                        .strafeToLinearHeading(new Vector2d(-48, -48), Math.toRadians(45))
+//                .strafeTo(new Vector2d(41.5,-64))
+//                .setTangent(0)
+//                        .splineTo(new Vector2d(-60, -60), Math.toRadians(45))
                         .build());
 
 

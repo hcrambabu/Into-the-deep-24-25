@@ -1,7 +1,11 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_H_H_POS;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_H_V_POS;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_CLAW_CLOSE_POS;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_CLAW_OPEN_POS;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_SERVO_INIT_POS;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_SERVO_OUT_POS;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_CLAW_CLOSE_POS;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_CLAW_OPEN_POS;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_POS_0;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_POS_1;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_POS_2;
@@ -9,41 +13,39 @@ import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_V_BACK_POS;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.anime.AnimeRobot;
 import org.firstinspires.ftc.teamcode.anime.BaseOpMode;
+
+import java.util.logging.Logger;
 
 @TeleOp(group = "Anime", name = "Anime: TeleOp")
 public class AnimeTeleOp extends BaseOpMode {
 
     public static final double SLOW_RUN_MULTIPLIER = 0.2;
-
+    private static Logger log = Logger.getLogger(AnimeTeleOp.class.getName());
     DcMotor frontLeftMotor;
     DcMotor backLeftMotor;
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
 
-    DcMotor liftLeft, liftRight, slideLeft, slideRight;
+    DcMotorEx liftLeft, liftRight, slideLeft, slideRight;
     CRServo intakeContinuousServo;
-    Servo intakeLiftServo, dropServo, intakeVerticalTurnServo, intakeHorizontalTurnServo, intakeClawServo;
+    Servo intakeLiftServo, dropServo, dropClaw, intakeVerticalTurnServo, intakeHorizontalTurnServo, intakeClawServo;
 
     IMU imu;
     RevColorSensorV3 intakeColorSensor;
     HuskyLens intakeHuskuy;
 
-    double intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_0;
-    double intakeVerticalTurnServoPos = INTAKE_V_BACK_POS;
-    double intakeHorizontalTurnServoPos = INTAKE_H_H_POS;
-    double intakeClawServoPos = 0.0;
-
     private ElapsedTime intakeDpadDownRuntime = new ElapsedTime();
+    private long logCount = 0;
+    private long maxlogCount = 10;
 
     @Override
     public void initialize() {
@@ -62,6 +64,7 @@ public class AnimeTeleOp extends BaseOpMode {
         this.intakeContinuousServo = this.robot.getIntakeContinousServo();
         this.intakeLiftServo = this.robot.getIntakeLiftServo();
         this.dropServo = this.robot.getDropServo();
+        this.dropClaw = this.robot.getDropClaw();
 
         this.imu = this.robot.getImu();
         this.intakeColorSensor = this.robot.getIntakeColorSensor();
@@ -71,25 +74,48 @@ public class AnimeTeleOp extends BaseOpMode {
         this.intakeHorizontalTurnServo = this.robot.getIntakeHorizontalTurnServo();
         this.intakeClawServo = this.robot.getIntakeClawServo();
 
-        this.intakeVerticalTurnServo.setPosition(INTAKE_V_BACK_POS);
-        this.intakeHorizontalTurnServo.setPosition(INTAKE_H_H_POS);
-        this.intakeLiftServo.setPosition(INTAKE_LIFT_DOWN_POS_0);
+        this.intakeVerticalTurnServo.setPosition(this.robot.getIntakeVerticalTurnServoPos());
+        this.intakeHorizontalTurnServo.setPosition(this.robot.getIntakeHorizontalTurnServoPos());
+        this.intakeLiftServo.setPosition(this.robot.getIntakeLiftServoPos());
+        this.dropServo.setPosition(this.robot.getDropServoPos());
+        this.dropClaw.setPosition(this.robot.getDropClawServoPos());
     }
 
     private void addTelemetry() {
-        telemetry.addData("Lift",
-                String.format("left: %7d, right:%7d", liftLeft.getCurrentPosition(), liftRight.getCurrentPosition()));
-        telemetry.addData("Slide",
-                String.format("left: %7d, right:%7d", slideLeft.getCurrentPosition(), slideRight.getCurrentPosition()));
+        if (!this.robot.isHangTheBot()) {
+            telemetry.addLine();
+            telemetry.addData("LiftPos",
+                    String.format("left: %7d, right:%7d", liftLeft.getCurrentPosition(), liftRight.getCurrentPosition()));
+            telemetry.addData("LiftVel",
+                    String.format("left: %.3f, right:%.3f", liftLeft.getVelocity(), liftRight.getVelocity()));
+            telemetry.addLine();
+            telemetry.addData("SlidePos",
+                    String.format("left: %7d, right:%7d", slideLeft.getCurrentPosition(), slideRight.getCurrentPosition()));
+            telemetry.addData("SlideVel",
+                    String.format("left: %.3f, right:%.3f", slideLeft.getVelocity(), slideRight.getVelocity()));
+            telemetry.addLine();
 //        telemetry.addData("IntakeColor", String.format("R:%02X , G:%02X, B:%02X",
 //                intakeColorSensor.red(), intakeColorSensor.green(), intakeColorSensor.blue()));
 //        telemetry.addData("IntakeDistance", intakeColorSensor.getDistance(DistanceUnit.MM));
-        telemetry.addData("IntakeLiftServo", intakeLiftServo.getPosition());
-        telemetry.addData("IntakeV", intakeVerticalTurnServo.getPosition());
-        telemetry.addData("IntakeH", intakeHorizontalTurnServo.getPosition());
-        telemetry.addData("Claw", intakeClawServo.getPosition());
-        telemetry.addData("DropServo", dropServo.getPosition());
-        telemetry.addData("intakeDpadDownRuntime", intakeDpadDownRuntime.seconds());
+            telemetry.addData("IntakeLiftServo", intakeLiftServo.getPosition());
+            telemetry.addData("IntakeV", intakeVerticalTurnServo.getPosition());
+            telemetry.addData("IntakeH", intakeHorizontalTurnServo.getPosition());
+            telemetry.addLine();
+            telemetry.addData("intakeDpadDownRuntime", intakeDpadDownRuntime.seconds());
+            telemetry.addLine();
+            telemetry.addData("Claw", intakeClawServo.getPosition());
+            telemetry.addData("DropServo", dropServo.getPosition());
+            telemetry.addLine();
+
+        } else {
+            telemetry.addLine();
+            telemetry.addData("1", "##################################");
+            telemetry.addLine("Robot is HANGING");
+            telemetry.addData("Power", liftLeft.getPower() + ", " + liftRight.getPower());
+            telemetry.addData("Mode", liftLeft.getMode() + ", " + liftRight.getMode());
+            telemetry.addData("2", "##################################");
+            telemetry.addLine();
+        }
     }
 
     public void runLoop() throws InterruptedException {
@@ -102,7 +128,6 @@ public class AnimeTeleOp extends BaseOpMode {
         handleBackButton();
         addTelemetry();
     }
-
 
     private void handleMecanum() {
         double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
@@ -132,103 +157,124 @@ public class AnimeTeleOp extends BaseOpMode {
     }
 
     private void handleSlide() {
-        double slidePower = -gamepad2.right_stick_y;
-        slidePower = this.robot.getIntake().checkSlidePower(slidePower);
-
-        slideLeft.setPower(slidePower);
-        slideRight.setPower(slidePower);
+        this.robot.getIntake().handleSlideManually(-gamepad2.right_stick_y);
     }
 
     private void handleStartButton() {
         if (gamepad2.start) {
-            this.intakeClawServoPos = 1.0;
-            this.intakeHorizontalTurnServoPos = INTAKE_H_H_POS;
-            this.intakeVerticalTurnServoPos = 1.0;
-            this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_1;
             intakeDpadDownRuntime.reset();
+            this.robot.getIntake().goFront();
+        }
+
+        if (gamepad1.start) {
+            this.robot.getLift().goToDrop();
         }
     }
 
     private void handleBackButton() {
         if (gamepad2.back) {
-            this.intakeClawServoPos = 0.0;
-            this.intakeHorizontalTurnServoPos = INTAKE_H_H_POS;
-            this.intakeVerticalTurnServoPos = INTAKE_V_BACK_POS;
-            this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_0;
-
             this.robot.getIntake().goBack();
+        }
+
+        if (gamepad1.back) {
+            this.robot.getLift().goBack();
         }
     }
 
     private void handleIntake() {
-//        double intakeServoPower = gamepad2.right_trigger - gamepad2.left_trigger;
-//        intakeContinuousServo.setPower(intakeServoPower);
-
         // Intake Vertical Turn Servo
         if (gamepad2.dpad_right) {
-            this.intakeVerticalTurnServoPos = INTAKE_V_BACK_POS;
+            this.robot.setIntakeVerticalTurnServoPos(INTAKE_V_BACK_POS);
         } else if (gamepad2.dpad_left) {
-            this.intakeVerticalTurnServoPos = 1.0;
+            this.robot.setIntakeVerticalTurnServoPos(1.0);
         }
 
         // Intake Lift Servo
         if (gamepad2.dpad_down) {
             if (this.intakeLiftServo.getPosition() == INTAKE_LIFT_DOWN_POS_1 && intakeDpadDownRuntime.seconds() > 1.0) {
-                this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_2;
+                this.robot.setIntakeLiftServoPos(INTAKE_LIFT_DOWN_POS_2);
             } else if (this.intakeLiftServo.getPosition() == INTAKE_LIFT_DOWN_POS_0) {
-                this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_1;
+                this.robot.setIntakeLiftServoPos(INTAKE_LIFT_DOWN_POS_1);
                 intakeDpadDownRuntime.reset();
             }
         } else if (gamepad2.dpad_up) {
-            this.intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_0;
+            this.robot.setIntakeLiftServoPos(INTAKE_LIFT_DOWN_POS_0);
         }
 
         // Intake Horizontal Turn Servo
         if (gamepad2.left_trigger > 0.5) {
-            this.intakeHorizontalTurnServoPos -= 0.01;
+            this.robot.stepDownIntakeHorizantalServoPos();
         } else if (gamepad2.right_trigger > 0.5) {
-            this.intakeHorizontalTurnServoPos += 0.01;
-        }
-        if (this.intakeHorizontalTurnServoPos > INTAKE_H_V_POS) {
-            this.intakeHorizontalTurnServoPos = INTAKE_H_V_POS;
-        } else if (this.intakeHorizontalTurnServoPos < 0.0) {
-            this.intakeHorizontalTurnServoPos = 0.0;
+            this.robot.stepUpIntakeHorizantalServoPos();
         }
 
         // Claw Servo
         if (gamepad2.right_bumper) {
-            this.intakeClawServoPos = 0.0;
+            this.robot.setIntakeClawServoPos(INTAKE_CLAW_CLOSE_POS);
         } else if (gamepad2.left_bumper) {
-            this.intakeClawServoPos = 1.0;
+            this.robot.setIntakeClawServoPos(INTAKE_CLAW_OPEN_POS);
         }
 
-        this.intakeClawServo.setPosition(this.intakeClawServoPos);
-        this.intakeVerticalTurnServo.setPosition(this.intakeVerticalTurnServoPos);
-        this.intakeLiftServo.setPosition(this.intakeLiftServoPos);
-        this.intakeHorizontalTurnServo.setPosition(this.intakeHorizontalTurnServoPos);
+        this.intakeClawServo.setPosition(this.robot.getIntakeClawServoPos());
+        this.intakeVerticalTurnServo.setPosition(this.robot.getIntakeVerticalTurnServoPos());
+        this.intakeHorizontalTurnServo.setPosition(this.robot.getIntakeHorizontalTurnServoPos());
+        this.intakeLiftServo.setPosition(this.robot.getIntakeLiftServoPos());
     }
 
     private void handleLift() {
-        double liftPower = -gamepad2.left_stick_y;
-        liftPower = this.robot.getLift().checkLiftPower(liftPower);
+        if (gamepad1.a || gamepad2.a) {
+//            this.robot.getLiftLeft().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//            this.robot.getLiftRight().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//            this.robot.setHangTheBot(true);
+            this.robot.getLift().goToDrop();
+        } else if (gamepad1.b || gamepad2.b) {
+//            this.robot.getLiftLeft().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//            this.robot.getLiftRight().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//            this.robot.setHangTheBot(false);
+            this.robot.getLift().goBack();
+        } else if (gamepad1.x || gamepad2.x) {
+            this.robot.getLift().specimenPickup();
+        } else if (gamepad1.y || gamepad2.y) {
+            this.robot.getLift().specimenDrop();
+        }
 
-        liftLeft.setPower(liftPower);
-        liftRight.setPower(liftPower);
+        if (logCount == maxlogCount) {
+            log.info("In handleLift....");
+        }
+        this.robot.getLift().handleLiftManually(-gamepad2.left_stick_y);
     }
 
     private void handleDrop() {
-        System.out.println(gamepad1.dpad_up + "" + gamepad1.dpad_down);
-        if (gamepad1.dpad_up) {
-            this.dropServo.setPosition(0.0);
-        } else if (gamepad1.dpad_down) {
-            this.dropServo.setPosition(1.0);
+
+        // DropClaw Servo
+        if (gamepad1.right_bumper) {
+            this.robot.setDropClawServoPos(DROP_CLAW_CLOSE_POS);
+        } else if (gamepad1.left_bumper) {
+            this.robot.setDropClawServoPos(DROP_CLAW_OPEN_POS);
         }
+
+        // Drop Servo (Hand)
+        if (gamepad1.dpad_up) {
+            this.robot.stepDownDropServoPos();
+        } else if (gamepad1.dpad_down) {
+            this.robot.stepUpDropServoPos();
+        } else if (gamepad1.dpad_right) {
+            this.robot.setDropServoPos(DROP_SERVO_INIT_POS);
+        } else if (gamepad1.dpad_left) {
+            this.robot.setDropServoPos(DROP_SERVO_OUT_POS);
+        }
+
+        this.dropServo.setPosition(this.robot.getDropServoPos());
+        this.dropClaw.setPosition(this.robot.getDropClawServoPos());
     }
 
     @Override
     public void runOpMode() throws InterruptedException {
+        log.info("Before initialize....");
         this.initialize();
+        log.info("before Start....");
         waitForStart();
+        log.info("After Start....");
 
         while (opModeIsActive()) {
             runLoop();

@@ -6,15 +6,14 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 @TeleOp(name = "Sensor: HuskyLens", group = "Sensor")
 
-public class HuskeyLensTest  extends LinearOpMode {
+public class HuskeyLensTest extends LinearOpMode {
 
     private final int READ_PERIOD = 1;
 
     private HuskyLens huskyLens;
 
     @Override
-    public void runOpMode()
-    {
+    public void runOpMode() {
         huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
 
         /*
@@ -69,7 +68,7 @@ public class HuskeyLensTest  extends LinearOpMode {
          *
          * Note again that the device only recognizes the 36h11 family of tags out of the box.
          */
-        while(opModeIsActive()) {
+        while (opModeIsActive()) {
 //            if (!rateLimit.hasExpired()) {
 //                continue;
 //            }

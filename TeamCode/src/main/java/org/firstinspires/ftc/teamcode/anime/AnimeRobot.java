@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.anime;
 
+import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriverRR;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
@@ -13,6 +14,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.roadrunner.PinpointDrive;
 
 import java.util.logging.Logger;
 
@@ -66,6 +69,7 @@ public class AnimeRobot {
     boolean hangTheBot = false;
     Intake intake;
     Lift lift;
+    PinpointDrive drive;
     double intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_0;
     double intakeVerticalTurnServoPos = INTAKE_V_BACK_POS;
     double intakeHorizontalTurnServoPos = INTAKE_H_H_POS;
@@ -74,7 +78,7 @@ public class AnimeRobot {
     double dropServoPos = DROP_SERVO_INIT_POS;
     private LinearOpMode opMode;
     private ElapsedTime robotRuntime = new ElapsedTime();
-    public AnimeRobot(LinearOpMode opMode) {
+    public AnimeRobot(LinearOpMode opMode, Pose2d beginPose) {
         this.opMode = opMode;
         this.hardwareMap = opMode.hardwareMap;
 
@@ -132,6 +136,7 @@ public class AnimeRobot {
         this.dropServo.setPosition(dropServoPos);
         this.dropClaw.setPosition(dropClawServoPos);
 
+        this.drive = new PinpointDrive(hardwareMap, beginPose);
         this.intake = new Intake(this);
         this.lift = new Lift(this);
 
@@ -338,6 +343,10 @@ public class AnimeRobot {
             this.dropServoPos = DROP_SERVO_MAX_POS;
         }
         return this.dropServoPos;
+    }
+
+    public PinpointDrive getDrive() {
+        return drive;
     }
 
     public void resetSlideNLift() {

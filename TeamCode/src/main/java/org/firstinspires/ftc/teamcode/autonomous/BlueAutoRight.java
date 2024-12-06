@@ -12,9 +12,9 @@ import org.firstinspires.ftc.teamcode.roadrunner.PinpointDrive;
 public class BlueAutoRight extends BaseOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        this.initialize();
         Pose2d beginPose = new Pose2d(-24, 63, -Math.PI / 2);
-        PinpointDrive drive = new PinpointDrive(hardwareMap, beginPose);
+        this.initialize(beginPose);
+
         waitForStart();
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)

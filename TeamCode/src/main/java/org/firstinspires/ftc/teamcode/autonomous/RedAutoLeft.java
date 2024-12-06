@@ -14,11 +14,10 @@ public class RedAutoLeft extends BaseOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        this.initialize();
         Pose2d beginPose = new Pose2d(-24, -63, Math.PI / 2);
-        PinpointDrive drive = new PinpointDrive(hardwareMap, beginPose);
-        waitForStart();
+        this.initialize(beginPose);
 
+        waitForStart();
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)
                         .strafeToLinearHeading(new Vector2d(-48, -48), Math.toRadians(45))

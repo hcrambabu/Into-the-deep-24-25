@@ -13,9 +13,9 @@ public class BlueAutoLeft extends BaseOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        this.initialize();
         Pose2d beginPose = new Pose2d(24, 63, -Math.PI / 2);
-        PinpointDrive drive = new PinpointDrive(hardwareMap, beginPose);
+        this.initialize(beginPose);
+
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)
                         .splineTo(new Vector2d(2, 30), Math.PI)

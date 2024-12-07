@@ -11,6 +11,8 @@ import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_P
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_POS_2;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_V_BACK_POS;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -25,6 +27,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.anime.BaseOpMode;
+import org.firstinspires.ftc.teamcode.roadrunner.Drawing;
 
 import java.util.logging.Logger;
 
@@ -134,39 +137,28 @@ public class AnimeTeleOp extends BaseOpMode {
 
     private void handleMecanum() {
 
-//        this.robot.getDrive().setDrivePowers(new PoseVelocity2d(
-//                new Vector2d(
-//                        -gamepad1.left_stick_y,
-//                        -gamepad1.left_stick_x
-//                ),
-//                -gamepad1.right_stick_x
-//        ));
-//
-//        this.robot.getDrive().updatePoseEstimate();
-        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
-        double rx = gamepad1.right_stick_x;
-
-        // Denominator is the largest motor power (absolute value) or 1
-        // This ensures all the powers maintain the same ratio,
-        // but only if at least one is out of the range [-1, 1]
-        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-        double frontLeftPower = (y + x + rx) / denominator;
-        double backLeftPower = (y - x + rx) / denominator;
-        double frontRightPower = (y - x - rx) / denominator;
-        double backRightPower = (y + x - rx) / denominator;
-
+        double g1ly = -gamepad1.left_stick_y;
+        double g1lx = -gamepad1.left_stick_x;
+        double g1rx = -gamepad1.right_stick_x;
         if (gamepad1.left_stick_button) {
-            frontLeftPower *= SLOW_RUN_MULTIPLIER;
-            backLeftPower *= SLOW_RUN_MULTIPLIER;
-            frontRightPower *= SLOW_RUN_MULTIPLIER;
-            backRightPower *= SLOW_RUN_MULTIPLIER;
+            g1ly *= SLOW_RUN_MULTIPLIER;
+            g1lx *= SLOW_RUN_MULTIPLIER;
+            g1rx *= SLOW_RUN_MULTIPLIER;
         }
 
-        frontLeftMotor.setPower(frontLeftPower);
-        backLeftMotor.setPower(backLeftPower);
-        frontRightMotor.setPower(frontRightPower);
-        backRightMotor.setPower(backRightPower);
+        this.robot.getDrive().setDrivePowers(new PoseVelocity2d(
+                new Vector2d(
+                        g1ly,
+                        g1lx
+                ),
+                g1rx
+        ));
+
+        this.robot.getDrive().updatePoseEstimate();
+//        TelemetryPacket packet = new TelemetryPacket();
+//        packet.fieldOverlay().setStroke("#3F51B5");
+//        Drawing.drawRobot(packet.fieldOverlay(), drive.pose);
+//        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
     private void handleSlide() {

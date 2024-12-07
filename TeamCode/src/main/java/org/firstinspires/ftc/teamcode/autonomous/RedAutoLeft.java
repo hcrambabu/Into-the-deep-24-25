@@ -20,10 +20,7 @@ public class RedAutoLeft extends BaseOpMode {
         waitForStart();
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)
-                        .strafeToLinearHeading(new Vector2d(-48, -48), Math.toRadians(45))
-//                        .strafeTo(new Vector2d(41.5,-64))
-//                        .setTangent(0)
-//                        .splineTo(new Vector2d(-60, -60), Math.toRadians(45))
+                        .splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(180))
                         .build());
     }
 }

@@ -14,22 +14,24 @@ public class MeepMeep {
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-//        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(24, -63, Math.toRadians(90)))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0, Math.toRadians(0)))
+                .splineTo(new Vector2d(30, 30), Math.PI / 2)
+                .splineTo(new Vector2d(0, 60), Math.PI)
 ////                        .setTangent(0)
 //                                .splineTo(new Vector2d(48, -24), Math.toRadians(90))
 //                .lineToY(24)
 ////                .turn(Math.toRadians(90))
-////                .lineToY(30)
+////                .lineToY(30)`
 ////                .turn(Math.toRadians(90))
 ////                .lineToX(0)
 ////                .turn(Math.toRadians(90))
 ////                .lineToY(0)
 ////                .turn(Math.toRadians(90))
-//                .build());
+                .build());
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-24, -63, Math.toRadians(90)))
-//                        .strafeToLinearHeading(new Vector2d(-48, -48), Math.toRadians(45))
-                .splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(180))
+//        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-24, -63, Math.toRadians(90)))
+////                        .strafeToLinearHeading(new Vector2d(-48, -48), Math.toRadians(45))
+//                .splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(180))
 //                .setTangent(0)
 //                .splineToLinearHeading(new Pose2d(-48, -48, Math.toRadians(90)), Math.toRadians(0))
 //                .setTangent(Math.toRadians(180))
@@ -38,8 +40,8 @@ public class MeepMeep {
 //                .splineToLinearHeading(new Pose2d(-58, -48, Math.toRadians(90)), Math.toRadians(0))
 //                .setTangent(Math.toRadians(270))
 //                .splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(180))
-                .build());
-
+//                .build());
+//
 //        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0, Math.toRadians(0)))
 //                .splineTo(new Vector2d(48, 48), Math.toRadians(90))
 //                .build());

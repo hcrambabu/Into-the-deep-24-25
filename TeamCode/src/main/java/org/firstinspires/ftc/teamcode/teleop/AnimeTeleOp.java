@@ -6,13 +6,12 @@ import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_SERVO_INIT_PO
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_SERVO_OUT_POS;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_CLAW_CLOSE_POS;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_CLAW_OPEN_POS;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_FACE_DOWN_POS;
+import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_FACE_UP_POS;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_POS_0;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_POS_1;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_LIFT_DOWN_POS_2;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.INTAKE_V_BACK_POS;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -27,7 +26,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.anime.BaseOpMode;
-import org.firstinspires.ftc.teamcode.roadrunner.Drawing;
 
 import java.util.logging.Logger;
 
@@ -76,15 +74,9 @@ public class AnimeTeleOp extends BaseOpMode {
         this.intakeColorSensor = this.robot.getIntakeColorSensor();
         this.intakeHuskuy = this.robot.getIntakeHuskuy();
 
-        this.intakeVerticalTurnServo = this.robot.getIntakeVerticalTurnServo();
+        this.intakeVerticalTurnServo = this.robot.getIntakeFaceUpDownServo();
         this.intakeHorizontalTurnServo = this.robot.getIntakeHorizontalTurnServo();
         this.intakeClawServo = this.robot.getIntakeClawServo();
-
-        this.intakeVerticalTurnServo.setPosition(this.robot.getIntakeVerticalTurnServoPos());
-        this.intakeHorizontalTurnServo.setPosition(this.robot.getIntakeHorizontalTurnServoPos());
-        this.intakeLiftServo.setPosition(this.robot.getIntakeLiftServoPos());
-        this.dropServo.setPosition(this.robot.getDropServoPos());
-        this.dropClaw.setPosition(this.robot.getDropClawServoPos());
     }
 
     private void addTelemetry() {
@@ -189,9 +181,9 @@ public class AnimeTeleOp extends BaseOpMode {
     private void handleIntake() {
         // Intake Vertical Turn Servo
         if (gamepad2.dpad_right) {
-            this.robot.setIntakeVerticalTurnServoPos(INTAKE_V_BACK_POS);
+            this.robot.setIntakeFaceUpDownServoPos(INTAKE_FACE_UP_POS);
         } else if (gamepad2.dpad_left) {
-            this.robot.setIntakeVerticalTurnServoPos(1.0);
+            this.robot.setIntakeFaceUpDownServoPos(INTAKE_FACE_DOWN_POS);
         }
 
         // Intake Lift Servo
@@ -219,11 +211,6 @@ public class AnimeTeleOp extends BaseOpMode {
         } else if (gamepad2.left_bumper) {
             this.robot.setIntakeClawServoPos(INTAKE_CLAW_OPEN_POS);
         }
-
-        this.intakeClawServo.setPosition(this.robot.getIntakeClawServoPos());
-        this.intakeVerticalTurnServo.setPosition(this.robot.getIntakeVerticalTurnServoPos());
-        this.intakeHorizontalTurnServo.setPosition(this.robot.getIntakeHorizontalTurnServoPos());
-        this.intakeLiftServo.setPosition(this.robot.getIntakeLiftServoPos());
     }
 
     private void handleLift() {
@@ -268,9 +255,6 @@ public class AnimeTeleOp extends BaseOpMode {
         } else if (gamepad1.dpad_left) {
             this.robot.setDropServoPos(DROP_SERVO_OUT_POS);
         }
-
-        this.dropServo.setPosition(this.robot.getDropServoPos());
-        this.dropClaw.setPosition(this.robot.getDropClawServoPos());
     }
 
     @Override

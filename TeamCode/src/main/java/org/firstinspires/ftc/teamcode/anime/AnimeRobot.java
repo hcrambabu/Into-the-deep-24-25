@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.anime;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriverRR;
-import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriver;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -31,9 +30,10 @@ public class AnimeRobot {
     public static final int SLIDE_MIN_LENGTH = 100;
     public static final double MIN_SLIDE_POWER = 0.04;
     public static final double MIN_LIFT_POWER = 0.07;
-    public static final double INTAKE_V_BACK_POS = 0.35;
-    public static final double INTAKE_H_H_POS = 0.24;
-    public static final double INTAKE_H_V_POS = 0.62;
+    public static final double INTAKE_FACE_UP_POS = 0.35;
+    public static final double INTAKE_FACE_DOWN_POS = 1.0;
+    public static final double INTAKE_HORIZANTAL_POS = 0.24;
+    public static final double INTAKE_VERTICAL_POS = 0.62;
     public static final double INTAKE_LIFT_DOWN_POS_0 = 0.0; //0.68; GB value
     public static final double INTAKE_LIFT_DOWN_POS_1 = 0.45; //0.92; GB value
     public static final double INTAKE_LIFT_DOWN_POS_2 = 0.55; //1.0; GB value
@@ -59,7 +59,7 @@ public class AnimeRobot {
     DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
     DcMotorEx liftLeft, liftRight, slideLeft, slideRight;
     CRServo intakeContinousServo;
-    Servo intakeLiftServo, dropServo, dropClaw, intakeVerticalTurnServo, intakeHorizontalTurnServo, intakeClawServo;
+    Servo intakeLiftServo, dropServo, dropClaw, intakeFaceUpDownServo, intakeHorizontalTurnServo, intakeClawServo;
     IMU imu;
     RevColorSensorV3 intakeColorSensor;
     HuskyLens intakeHuskuy;
@@ -72,13 +72,14 @@ public class AnimeRobot {
     Lift lift;
     PinpointDrive drive;
     double intakeLiftServoPos = INTAKE_LIFT_DOWN_POS_0;
-    double intakeVerticalTurnServoPos = INTAKE_V_BACK_POS;
-    double intakeHorizontalTurnServoPos = INTAKE_H_H_POS;
-    double intakeClawServoPos = INTAKE_CLAW_CLOSE_POS;
-    double dropClawServoPos = DROP_CLAW_OPEN_POS;
+    double intakeFaceUpDownServoPos = INTAKE_FACE_UP_POS;
+    double intakeHorizontalTurnServoPos = INTAKE_HORIZANTAL_POS;
+    double intakeClawServoPos = INTAKE_CLAW_OPEN_POS;
+    double dropClawServoPos = DROP_CLAW_CLOSE_POS;
     double dropServoPos = DROP_SERVO_INIT_POS;
     private LinearOpMode opMode;
     private ElapsedTime robotRuntime = new ElapsedTime();
+
     public AnimeRobot(LinearOpMode opMode, Pose2d beginPose) {
         this.opMode = opMode;
         this.hardwareMap = opMode.hardwareMap;
@@ -127,11 +128,11 @@ public class AnimeRobot {
         intakeHuskuy = hardwareMap.get(HuskyLens.class, "intakeHusky");
         pinpoint = hardwareMap.get(GoBildaPinpointDriverRR.class, "pinpoint");
 
-        intakeVerticalTurnServo = hardwareMap.servo.get("intakeV");
+        intakeFaceUpDownServo = hardwareMap.servo.get("intakeV");
         intakeHorizontalTurnServo = hardwareMap.servo.get("intakeH");
         intakeClawServo = hardwareMap.servo.get("intakeClaw");
 
-        this.intakeVerticalTurnServo.setPosition(intakeVerticalTurnServoPos);
+        this.intakeFaceUpDownServo.setPosition(intakeFaceUpDownServoPos);
         this.intakeHorizontalTurnServo.setPosition(intakeHorizontalTurnServoPos);
         this.intakeLiftServo.setPosition(intakeLiftServoPos);
         this.dropServo.setPosition(dropServoPos);
@@ -241,8 +242,8 @@ public class AnimeRobot {
         return hardwareMap;
     }
 
-    public Servo getIntakeVerticalTurnServo() {
-        return intakeVerticalTurnServo;
+    public Servo getIntakeFaceUpDownServo() {
+        return intakeFaceUpDownServo;
     }
 
     public Servo getDropClaw() {
@@ -265,12 +266,13 @@ public class AnimeRobot {
         return opMode;
     }
 
-    public double getIntakeVerticalTurnServoPos() {
-        return intakeVerticalTurnServoPos;
+    public double getIntakeFaceUpDownServoPos() {
+        return intakeFaceUpDownServoPos;
     }
 
-    public void setIntakeVerticalTurnServoPos(double intakeVerticalTurnServoPos) {
-        this.intakeVerticalTurnServoPos = intakeVerticalTurnServoPos;
+    public void setIntakeFaceUpDownServoPos(double intakeFaceUpDownServoPos) {
+        this.intakeFaceUpDownServoPos = intakeFaceUpDownServoPos;
+        this.intakeFaceUpDownServo.setPosition(this.intakeFaceUpDownServoPos);
     }
 
     public double getIntakeHorizontalTurnServoPos() {
@@ -279,6 +281,7 @@ public class AnimeRobot {
 
     public void setIntakeHorizontalTurnServoPos(double intakeHorizontalTurnServoPos) {
         this.intakeHorizontalTurnServoPos = intakeHorizontalTurnServoPos;
+        this.intakeHorizontalTurnServo.setPosition(this.intakeHorizontalTurnServoPos);
     }
 
     public double getIntakeClawServoPos() {
@@ -287,6 +290,7 @@ public class AnimeRobot {
 
     public void setIntakeClawServoPos(double intakeClawServoPos) {
         this.intakeClawServoPos = intakeClawServoPos;
+        this.intakeClawServo.setPosition(this.intakeClawServoPos);
     }
 
     public double getDropClawServoPos() {
@@ -295,6 +299,7 @@ public class AnimeRobot {
 
     public void setDropClawServoPos(double dropClawServoPos) {
         this.dropClawServoPos = dropClawServoPos;
+        this.dropClaw.setPosition(this.dropClawServoPos);
     }
 
     public double getDropServoPos() {
@@ -303,6 +308,7 @@ public class AnimeRobot {
 
     public void setDropServoPos(double dropServoPos) {
         this.dropServoPos = dropServoPos;
+        this.dropServo.setPosition(this.dropServoPos);
     }
 
     public double getIntakeLiftServoPos() {
@@ -311,39 +317,41 @@ public class AnimeRobot {
 
     public void setIntakeLiftServoPos(double intakeLiftServoPos) {
         this.intakeLiftServoPos = intakeLiftServoPos;
+        this.intakeLiftServo.setPosition(this.intakeLiftServoPos);
     }
 
-    public double stepDownIntakeHorizantalServoPos() {
+    public void stepDownIntakeHorizantalServoPos() {
         this.intakeHorizontalTurnServoPos -= 0.01;
         if (this.intakeHorizontalTurnServoPos < 0.0) {
             this.intakeHorizontalTurnServoPos = 0.0;
         }
-        return this.intakeHorizontalTurnServoPos;
+        this.intakeHorizontalTurnServo.setPosition(this.intakeHorizontalTurnServoPos);
+
     }
 
-    public double stepUpIntakeHorizantalServoPos() {
+    public void stepUpIntakeHorizantalServoPos() {
         this.intakeHorizontalTurnServoPos += 0.01;
-        if (this.intakeHorizontalTurnServoPos > INTAKE_H_V_POS) {
-            this.intakeHorizontalTurnServoPos = INTAKE_H_V_POS;
+        if (this.intakeHorizontalTurnServoPos > INTAKE_VERTICAL_POS) {
+            this.intakeHorizontalTurnServoPos = INTAKE_VERTICAL_POS;
         }
 
-        return this.intakeHorizontalTurnServoPos;
+        this.intakeHorizontalTurnServo.setPosition(this.intakeHorizontalTurnServoPos);
     }
 
-    public double stepDownDropServoPos() {
+    public void stepDownDropServoPos() {
         this.dropServoPos -= 0.01;
         if (this.dropServoPos < DROP_SERVO_MIN_POS) {
             this.dropServoPos = DROP_SERVO_MIN_POS;
         }
-        return this.dropServoPos;
+        this.dropServo.setPosition(this.dropServoPos);
     }
 
-    public double stepUpDropServoPos() {
+    public void stepUpDropServoPos() {
         this.dropServoPos += 0.01;
         if (this.dropServoPos > DROP_SERVO_MAX_POS) {
             this.dropServoPos = DROP_SERVO_MAX_POS;
         }
-        return this.dropServoPos;
+        this.dropServo.setPosition(this.dropServoPos);
     }
 
     public PinpointDrive getDrive() {
@@ -376,5 +384,9 @@ public class AnimeRobot {
         left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         log.info(String.format("Out resetMotors {%s} ...", name));
+    }
+
+    public void sleep(long millis) {
+        this.opMode.sleep(millis);
     }
 }

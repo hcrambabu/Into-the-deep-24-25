@@ -6,7 +6,6 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.anime.BaseOpMode;
-import org.firstinspires.ftc.teamcode.roadrunner.PinpointDrive;
 
 @Autonomous
 public class BlueAutoLeft extends BaseOpMode {

@@ -12,6 +12,7 @@ import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.LIFT_SPECIMEN_HANG
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.LIFT_SPECIMEN_PICK_UP_HEIGHT;
 import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.MIN_LIFT_POWER;
 
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -89,12 +90,56 @@ public class Lift {
         this.currentTask = CompletableFuture.runAsync(() -> specimenHangTask());
     }
 
+    public Action goBackAction() {
+        return telemetryPacket -> {
+            goBackTask();
+            return false;
+        };
+    }
+
+    public Action goToDropAction() {
+        return telemetryPacket -> {
+            goToDropTask();
+            return false;
+        };
+    }
+
+    public Action specimenPickupAction() {
+        return telemetryPacket -> {
+            specimenPickupTask();
+            return false;
+        };
+    }
+
+    public Action specimenHangAction() {
+        return telemetryPacket -> {
+            specimenHangTask();
+            return false;
+        };
+    }
+
+    public Action openDropClawAction() {
+        return telemetryPacket -> {
+            robot.setDropClawServoPos(DROP_CLAW_OPEN_POS);
+            return false;
+        };
+    }
+
+    public void dropServoOut() {
+        CompletableFuture.runAsync(() -> {
+            this.robot.sleep(200);
+            dropServoOutTask();
+        });
+    }
+
+    public void dropServoOutTask() {
+        this.robot.setDropServoPos(DROP_SERVO_OUT_POS);
+        this.robot.sleep(200);
+    }
+
     public void goBackTask() {
         this.robot.setDropClawServoPos(DROP_CLAW_OPEN_POS);
         this.robot.setDropServoPos(DROP_SERVO_INIT_POS);
-
-        this.robot.dropServo.setPosition(this.robot.getDropServoPos());
-        this.robot.dropClaw.setPosition(this.robot.getDropClawServoPos());
 
         this.robot.liftLeft.setTargetPosition(-20);
         this.robot.liftRight.setTargetPosition(-20);
@@ -124,7 +169,6 @@ public class Lift {
     public void goToDropTask() {
 
         this.robot.setDropClawServoPos(DROP_CLAW_CLOSE_POS);
-        this.robot.dropClaw.setPosition(this.robot.getDropClawServoPos());
 
         int reducedSpeedPoint = LIFT_MAX_HEIGHT - 100;
         this.robot.liftLeft.setTargetPosition(LIFT_MAX_HEIGHT);
@@ -136,6 +180,7 @@ public class Lift {
         this.robot.liftRight.setPower(1);
 
         liftRuntime.reset();
+        this.dropServoOut(); // this with bring drop arm out
         while (this.robot.getOpMode().opModeIsActive() &&
                 (liftRuntime.seconds() < 2.5) &&
                 this.robot.liftLeft.isBusy() && this.robot.liftRight.isBusy()) {
@@ -151,9 +196,6 @@ public class Lift {
         this.robot.setHoldLift(true);
         this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.robot.liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        this.robot.setDropServoPos(DROP_SERVO_OUT_POS);
-        this.robot.dropServo.setPosition(this.robot.getDropServoPos());
     }
 
     public void specimenPickupTask() {
@@ -180,15 +222,12 @@ public class Lift {
         this.robot.liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         this.robot.setDropClawServoPos(DROP_CLAW_OPEN_POS);
-        this.robot.dropClaw.setPosition(this.robot.getDropClawServoPos());
         this.robot.setDropServoPos(DROP_SERVO_SPECIMEN_COLLECT_POS);
-        this.robot.dropServo.setPosition(this.robot.getDropServoPos());
     }
 
     public void specimenHangTask() {
 
         this.robot.setDropClawServoPos(DROP_CLAW_CLOSE_POS);
-        this.robot.dropClaw.setPosition(this.robot.getDropClawServoPos());
 
         this.robot.liftLeft.setTargetPosition(LIFT_SPECIMEN_HANG_HEIGHT);
         this.robot.liftRight.setTargetPosition(LIFT_SPECIMEN_HANG_HEIGHT);
@@ -212,7 +251,6 @@ public class Lift {
         this.robot.liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         this.robot.setDropServoPos(DROP_SERVO_SPECIMEN_HANG_POS);
-        this.robot.dropServo.setPosition(this.robot.getDropServoPos());
     }
 
     public void resetLift() {

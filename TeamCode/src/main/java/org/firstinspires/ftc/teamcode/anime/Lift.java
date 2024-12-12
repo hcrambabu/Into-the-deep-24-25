@@ -62,18 +62,18 @@ public class Lift {
         this.robot.liftRight.setPower(liftPower);
     }
 
-    public void goBack() {
+    public void liftDown() {
         if (currentTask != null && !currentTask.isDone()) {
             return;
         }
-        this.currentTask = CompletableFuture.runAsync(() -> goBackTask());
+        this.currentTask = CompletableFuture.runAsync(() -> liftDownTask());
     }
 
-    public void goToDrop() {
+    public void liftUpToBasketLevel() {
         if (currentTask != null && !currentTask.isDone()) {
             return;
         }
-        this.currentTask = CompletableFuture.runAsync(() -> goToDropTask());
+        this.currentTask = CompletableFuture.runAsync(() -> liftUpToBasketTask());
     }
 
     public void specimenPickup() {
@@ -90,39 +90,27 @@ public class Lift {
         this.currentTask = CompletableFuture.runAsync(() -> specimenHangTask());
     }
 
-    public Action goBackAction() {
-        return telemetryPacket -> {
-            goBackTask();
-            return false;
-        };
+    public Action liftDownAction() {
+        return new AnimeAction(() -> liftDownTask());
     }
 
-    public Action goToDropAction() {
-        return telemetryPacket -> {
-            goToDropTask();
-            return false;
-        };
+    public Action liftUpToBasketLevelAction() {
+        return new AnimeAction(() -> liftUpToBasketTask());
     }
 
     public Action specimenPickupAction() {
-        return telemetryPacket -> {
-            specimenPickupTask();
-            return false;
-        };
+        return new AnimeAction(() -> specimenPickupTask());
     }
 
     public Action specimenHangAction() {
-        return telemetryPacket -> {
-            specimenHangTask();
-            return false;
-        };
+        return new AnimeAction(() -> specimenHangTask());
     }
 
     public Action openDropClawAction() {
-        return telemetryPacket -> {
+        return new AnimeAction(() -> {
             robot.setDropClawServoPos(DROP_CLAW_OPEN_POS);
-            return false;
-        };
+            this.robot.sleep(200);
+        });
     }
 
     public void dropServoOut() {
@@ -137,7 +125,7 @@ public class Lift {
         this.robot.sleep(200);
     }
 
-    public void goBackTask() {
+    public void liftDownTask() {
         this.robot.setDropClawServoPos(DROP_CLAW_OPEN_POS);
         this.robot.setDropServoPos(DROP_SERVO_INIT_POS);
 
@@ -166,7 +154,7 @@ public class Lift {
         this.robot.liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    public void goToDropTask() {
+    public void liftUpToBasketTask() {
 
         this.robot.setDropClawServoPos(DROP_CLAW_CLOSE_POS);
 

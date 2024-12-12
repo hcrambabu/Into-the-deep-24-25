@@ -14,7 +14,7 @@ public class HuskeyLensTest extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
+        huskyLens = hardwareMap.get(HuskyLens.class, "intakeHusky");
 
         /*
          * This sample rate limits the reads solely to allow a user time to observe
@@ -57,7 +57,7 @@ public class HuskeyLensTest extends LinearOpMode {
          *
          * Other algorithm choices for FTC might be: OBJECT_RECOGNITION, COLOR_RECOGNITION or OBJECT_CLASSIFICATION.
          */
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
 
         telemetry.update();
         waitForStart();

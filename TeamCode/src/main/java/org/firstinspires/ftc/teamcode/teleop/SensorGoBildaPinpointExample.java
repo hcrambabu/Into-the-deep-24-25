@@ -20,7 +20,7 @@
  *   SOFTWARE.
  */
 
-package org.firstinspires.ftc.teamcode.roadrunner;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
@@ -59,7 +59,7 @@ For support, contact tech@gobilda.com
 -Ethan Doak
  */
 
-@TeleOp(name = "goBILDA® PinPoint Odometry Example", group = "Linear OpMode")
+@TeleOp(name = "Sensor: goBILDA® PinPoint Example", group = "Sensor")
 //@Disabled
 public class SensorGoBildaPinpointExample extends LinearOpMode {
 

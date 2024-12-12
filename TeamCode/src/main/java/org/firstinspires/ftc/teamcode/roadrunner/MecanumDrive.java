@@ -51,6 +51,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.anime.AnimeRobot;
+import org.firstinspires.ftc.teamcode.anime.PoseStorage;
 import org.firstinspires.ftc.teamcode.roadrunner.messages.DriveCommandMessage;
 import org.firstinspires.ftc.teamcode.roadrunner.messages.MecanumCommandMessage;
 import org.firstinspires.ftc.teamcode.roadrunner.messages.MecanumLocalizerInputsMessage;
@@ -143,6 +144,7 @@ public class MecanumDrive {
     public PoseVelocity2d updatePoseEstimate() {
         Twist2dDual<Time> twist = localizer.update();
         pose = pose.plus(twist.value());
+        PoseStorage.currentPose = this.pose;
 
         poseHistory.add(pose);
         while (poseHistory.size() > 100) {
@@ -207,9 +209,9 @@ public class MecanumDrive {
         public double kA = 0.001;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 30;
-        public double minProfileAccel = -30;
-        public double maxProfileAccel = 30;
+        public double maxWheelVel = 50;
+        public double minProfileAccel = -50;
+        public double maxProfileAccel = 50;
 
         // turn profile parameters (in radians)
         public double maxAngVel = Math.PI; // shared with path
@@ -315,6 +317,7 @@ public class MecanumDrive {
         public final TimeTrajectory timeTrajectory;
         private final double[] xPoints, yPoints;
         private double beginTs = -1;
+        private boolean cancelled = false;
 
         public FollowTrajectoryAction(TimeTrajectory t) {
             timeTrajectory = t;
@@ -413,7 +416,7 @@ public class MecanumDrive {
             c.setStrokeWidth(1);
             c.strokePolyline(xPoints, yPoints);
 
-            return true;
+            return !cancelled;
         }
 
         @Override
@@ -421,6 +424,10 @@ public class MecanumDrive {
             c.setStroke("#4CAF507A");
             c.setStrokeWidth(1);
             c.strokePolyline(xPoints, yPoints);
+        }
+
+        public void cancelAbruptly() {
+            cancelled = true;
         }
     }
 

@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.anime.PoseStorage;
 import org.firstinspires.ftc.teamcode.roadrunner.messages.PoseMessage;
 
 /**
@@ -79,6 +80,7 @@ public class PinpointDrive extends MecanumDrive {
         }
         pinpoint.update();
         pose = pinpoint.getPositionRR();
+        PoseStorage.currentPose = this.pose;
         lastPinpointPose = pose;
 
         // RR standard
@@ -110,7 +112,7 @@ public class PinpointDrive extends MecanumDrive {
         //These are tuned for 3110-0002-0001 Product Insight #1
         // RR localizer note: These units are inches, presets are converted from mm (which is why they are inexact)
         public double xOffset = 7.25;
-        public double yOffset = -7.5;
+        public double yOffset = -7.5; //for center of Robot //  -21;
 
         /*
         Set the kind of pods used by your robot. If you're using goBILDA odometry pods, select either

@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.anime.PoseStorage;
 import org.firstinspires.ftc.teamcode.roadrunner.messages.PoseMessage;
 
 /**
@@ -92,6 +93,7 @@ public class SparkFunOTOSDrive extends MecanumDrive {
         SparkFunOTOS.Pose2D otosAcc = new SparkFunOTOS.Pose2D();
         otos.getPosVelAcc(otosPose, otosVel, otosAcc);
         pose = OTOSPoseToRRPose(otosPose);
+        PoseStorage.currentPose = this.pose;
         lastOtosPose = pose;
 
         // RR standard

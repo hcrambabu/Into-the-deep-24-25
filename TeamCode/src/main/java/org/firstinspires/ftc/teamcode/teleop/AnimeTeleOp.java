@@ -188,20 +188,17 @@ public class AnimeTeleOp extends BaseOpMode {
     }
 
     private void handleIntake() {
-        // Intake Vertical Turn Servo
-        if (gamepad2.dpad_right) {
-            this.robot.setIntakeFaceUpDownServoPos(INTAKE_FACE_UP_POS);
-        } else if (gamepad2.dpad_left) {
-            this.robot.setIntakeFaceUpDownServoPos(INTAKE_FACE_DOWN_POS);
-        }
-
-        // Intake Lift Servo
+        // Intake Lift Servo & Vertical Turn Servo
         if (gamepad2.dpad_down) {
             this.robot.stepUpIntakeLiftServoPos();
         } else if (gamepad2.dpad_up) {
             this.robot.stepDownIntakeLiftServoPos();
+        } else if (gamepad2.dpad_right) {
+            this.robot.setIntakeFaceUpDownServoPos(INTAKE_FACE_UP_POS);
+        } else if (gamepad2.dpad_left) {
+            this.robot.setIntakeFaceUpDownServoPos(INTAKE_FACE_DOWN_POS);
         }
-
+        
         // Intake Horizontal Turn Servo
         if (gamepad2.left_trigger > 0.5) {
             this.robot.stepDownIntakeHorizantalServoPos();

@@ -40,7 +40,7 @@ public class Lift {
     }
 
     public void handleLiftManually(double manualPower) {
-        if (currentTask != null && !currentTask.isDone()) {
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
         }
 
@@ -63,28 +63,33 @@ public class Lift {
     }
 
     public void liftDown() {
-        if (currentTask != null && !currentTask.isDone()) {
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
         }
         this.currentTask = CompletableFuture.runAsync(() -> liftDownTask());
     }
 
-    public void liftUpToBasketLevel() {
-        if (currentTask != null && !currentTask.isDone()) {
-            return;
+    public CompletableFuture<Void> liftUpToBasketLevel(boolean cancelCurrentTask) {
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
+            if(cancelCurrentTask) {
+                currentTask.cancel(true);
+            } else {
+                return null;
+            }
         }
         this.currentTask = CompletableFuture.runAsync(() -> liftUpToBasketTask());
+        return currentTask;
     }
 
     public void specimenPickup() {
-        if (currentTask != null && !currentTask.isDone()) {
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
         }
         this.currentTask = CompletableFuture.runAsync(() -> specimenPickupTask());
     }
 
     public void specimenDrop() {
-        if (currentTask != null && !currentTask.isDone()) {
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
         }
         this.currentTask = CompletableFuture.runAsync(() -> specimenHangTask());
@@ -157,6 +162,7 @@ public class Lift {
     public void liftUpToBasketTask() {
 
         this.robot.setDropClawServoPos(DROP_CLAW_CLOSE_POS);
+        this.dropServoOut(); // this with bring drop arm out
 
         int reducedSpeedPoint = LIFT_MAX_HEIGHT - 100;
         this.robot.liftLeft.setTargetPosition(LIFT_MAX_HEIGHT);
@@ -166,9 +172,7 @@ public class Lift {
 
         this.robot.liftLeft.setPower(1);
         this.robot.liftRight.setPower(1);
-
         liftRuntime.reset();
-        this.dropServoOut(); // this with bring drop arm out
         while (this.robot.getOpMode().opModeIsActive() &&
                 (liftRuntime.seconds() < 2.5) &&
                 this.robot.liftLeft.isBusy() && this.robot.liftRight.isBusy()) {
@@ -242,7 +246,7 @@ public class Lift {
     }
 
     public void resetLift() {
-        if (currentTask != null && !currentTask.isDone()) {
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
         }
         this.currentTask = CompletableFuture.runAsync(() -> resetLiftTask());

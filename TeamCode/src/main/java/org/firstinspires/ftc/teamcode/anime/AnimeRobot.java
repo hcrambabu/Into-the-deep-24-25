@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 
 public class AnimeRobot {
 
-    public static final int LIFT_MAX_HEIGHT = 4200;
+    public static final int LIFT_MAX_HEIGHT = 4230;
     public static final int LIFT_MIN_HEIGHT = 100;
     public static final int LIFT_SPECIMEN_PICK_UP_HEIGHT = 0;
     public static final int LIFT_SPECIMEN_HANG_HEIGHT = 1500;
@@ -30,8 +30,8 @@ public class AnimeRobot {
     public static final int SLIDE_MIN_LENGTH = 100;
     public static final double MIN_SLIDE_POWER = 0.04;
     public static final double MIN_LIFT_POWER = 0.07;
-    public static final double INTAKE_FACE_UP_POS = 0.35;
-    public static final double INTAKE_FACE_DOWN_POS = 1.0;
+    public static final double INTAKE_FACE_UP_POS = 0.794;
+    public static final double INTAKE_FACE_DOWN_POS = 0.08;
     public static final double INTAKE_ROTATING_SERVO_MIN_POS = 0.12;
     public static final double INTAKE_ROTATING_SERVO_MAX_POS = 1.0;
     public static final double INTAKE_ROTATING_SERVO_HORIZANTAL_POS = 0.48;
@@ -64,7 +64,7 @@ public class AnimeRobot {
     private static Logger log = Logger.getLogger(AnimeRobot.class.getName());
     DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
     DcMotorEx liftLeft, liftRight, slideLeft, slideRight;
-    CRServo intakeContinousServo;
+    Servo testServo;
     Servo intakeLiftServo;
     Servo dropServo;
     Servo dropClaw;
@@ -134,7 +134,7 @@ public class AnimeRobot {
         slideLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slideRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        intakeContinousServo = hardwareMap.crservo.get("intakeContinuous");
+        testServo = hardwareMap.servo.get("servo");
         intakeLiftServo = hardwareMap.servo.get("intakeLift");
         dropServo = hardwareMap.servo.get("dropServo");
         dropClaw = hardwareMap.servo.get("dropClaw");
@@ -228,8 +228,8 @@ public class AnimeRobot {
         return slideRight;
     }
 
-    public CRServo getIntakeContinousServo() {
-        return intakeContinousServo;
+    public Servo getTestServo() {
+        return testServo;
     }
 
     public Servo getIntakeLiftServo() {

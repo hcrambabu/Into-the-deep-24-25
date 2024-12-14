@@ -11,18 +11,21 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.anime.BaseOpMode;
 
-@Autonomous
+@Autonomous(group = "Anime", name = "Left")
 //@TeleOp(group = "Anime", name = "Anime: RedLeft")
 public class RedAutoLeft extends BaseOpMode {
-
+    public static final double TIME_GAP_FOR_LIFT = 0.5;
+    public static final double TIME_FACT = 2;
+    public static final boolean GO_FOR_3rd_SAMPLE = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
+
         Pose2d beginPose = new Pose2d(-24, -63, Math.PI / 2);
-        Pose2d basetPose = new Pose2d(-51, -51, Math.toRadians(45));
+        Pose2d basetPose = new Pose2d(-52, -52, Math.toRadians(45));
         Pose2d sample1Pose = new Pose2d(-49, -48, Math.toRadians(90));
-        Pose2d sample2Pose = new Pose2d(-58, -48, Math.toRadians(90));
-        Pose2d sample3Pose = new Pose2d(-58, -48, Math.toRadians(115));
+        Pose2d sample2Pose = new Pose2d(-57, -48, Math.toRadians(90));
+        Pose2d sample3Pose = new Pose2d(-57, -48, Math.toRadians(115));
         Pose2d parking = new Pose2d(-24, -12, Math.toRadians(0));
         this.initialize(beginPose);
 
@@ -44,7 +47,11 @@ public class RedAutoLeft extends BaseOpMode {
                 .turnTo(sample3Pose.heading);
         TrajectoryActionBuilder gotoBasket_4 = gotoSample_3.endTrajectory().fresh()
                 .splineToLinearHeading(basetPose, Math.toRadians(270));
-        TrajectoryActionBuilder gotoParking = gotoBasket_4.endTrajectory().fresh()
+
+        TrajectoryActionBuilder gotoParkingAfterSample2 = gotoBasket_3.endTrajectory().fresh()
+                .turnTo(Math.toRadians(90))
+                .splineToLinearHeading(parking, Math.toRadians(0));
+        TrajectoryActionBuilder gotoParkingAfterSample3 = gotoBasket_4.endTrajectory().fresh()
                 .turnTo(Math.toRadians(90))
                 .splineToLinearHeading(parking, Math.toRadians(0));
 
@@ -53,19 +60,25 @@ public class RedAutoLeft extends BaseOpMode {
         Actions.runBlocking(
                 new SequentialAction(
                         new ParallelAction(
-                                gotoBasket_1.build(),
-                                this.robot.getLift().liftUpToBasketLevelAction()
+                                this.robot.getLift().liftUpToBasketLevelAction(),
+                                new SequentialAction(
+                                        new SleepAction(TIME_GAP_FOR_LIFT),
+                                        gotoBasket_1.build()
+                                )
                         ),
                         this.robot.getLift().openDropClawAction(),
                         new ParallelAction(
                                 gotoSample_1.build(),
-                                this.robot.getLift().liftDownAction(),
-                                this.robot.getIntake().OpenClawAction()
+                                new SequentialAction(
+                                        new SleepAction(TIME_GAP_FOR_LIFT),
+                                        this.robot.getLift().liftDownAction()
+                                )
+//                                this.robot.getIntake().OpenClawAction()
                         )
                 )
         );
         // Search For Sample-1
-        Pose2d samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 11);
+        Pose2d samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 10);
         if (samplePose != null) {
             alignToSample(samplePose);
         }
@@ -76,19 +89,24 @@ public class RedAutoLeft extends BaseOpMode {
                         this.robot.getIntake().goBackAction(),
                         new ParallelAction(
                                 this.robot.getLift().liftUpToBasketLevelAction(),
-                                gotoBasket_2.build()
+                                new SequentialAction(
+                                        new SleepAction(TIME_GAP_FOR_LIFT * TIME_FACT),
+                                        gotoBasket_2.build()
+                                )
                         ),
 
                         this.robot.getLift().openDropClawAction(),
                         new ParallelAction(
                                 gotoSample_2.build(),
-                                this.robot.getLift().liftDownAction(),
-                                this.robot.getIntake().OpenClawAction()
+                                new SequentialAction(
+                                        new SleepAction(TIME_GAP_FOR_LIFT),
+                                        this.robot.getLift().liftDownAction()
+                                )
                         )
                 )
         );
         // Search For Sample-2
-        samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 11);
+        samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 10);
         if (samplePose != null) {
             alignToSample(samplePose);
         }
@@ -99,40 +117,68 @@ public class RedAutoLeft extends BaseOpMode {
                         this.robot.getIntake().goBackAction(),
                         new ParallelAction(
                                 this.robot.getLift().liftUpToBasketLevelAction(),
-                                gotoBasket_3.build()
+                                new SequentialAction(
+                                        new SleepAction(TIME_GAP_FOR_LIFT * TIME_FACT),
+                                        gotoBasket_3.build()
+                                )
                         ),
 
-                        this.robot.getLift().openDropClawAction(),
-                        new ParallelAction(
-                                gotoSample_3.build(),
-                                this.robot.getLift().liftDownAction(),
-                                this.robot.getIntake().OpenClawAction()
-                        )
+                        this.robot.getLift().openDropClawAction()
                 )
         );
 
-        // Search For Sample-3
-        samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 13);
-        if (samplePose != null) {
-            alignToSample(samplePose);
+        if (GO_FOR_3rd_SAMPLE) {
+            Actions.runBlocking(
+                    new SequentialAction(
+                            new ParallelAction(
+                                    gotoSample_3.build(),
+                                    new SequentialAction(
+                                            new SleepAction(TIME_GAP_FOR_LIFT),
+                                            this.robot.getLift().liftDownAction()
+                                    )
+                            )
+                    )
+            );
+
+            // Search For Sample-3
+            samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 13);
+            if (samplePose != null) {
+                alignToSample(samplePose);
+            }
+            // Catch Sample-2 and Drop it into basket
+            Actions.runBlocking(
+                    new SequentialAction(
+                            this.robot.getIntake().catchSampleAction(),
+                            this.robot.getIntake().goBackAction(),
+
+                            new ParallelAction(
+                                    this.robot.getLift().liftUpToBasketLevelAction(),
+                                    new SequentialAction(
+                                            new SleepAction(TIME_GAP_FOR_LIFT * TIME_FACT),
+                                            gotoBasket_4.build()
+                                    )
+                            ),
+                            this.robot.getLift().openDropClawAction(),
+                            new ParallelAction(
+                                    gotoParkingAfterSample3.build(),
+                                    new SequentialAction(
+                                            new SleepAction(TIME_GAP_FOR_LIFT),
+                                            this.robot.getLift().liftDownAction()
+                                    )
+                            )
+                    )
+            );
+        } else {
+            Actions.runBlocking(
+                    new ParallelAction(
+                            gotoParkingAfterSample2.build(),
+                            new SequentialAction(
+                                    new SleepAction(TIME_GAP_FOR_LIFT),
+                                    this.robot.getLift().liftDownAction()
+                            )
+                    )
+            );
         }
-        // Catch Sample-2 and Drop it into basket
-        Actions.runBlocking(
-                new SequentialAction(
-                        this.robot.getIntake().catchSampleAction(),
-                        this.robot.getIntake().goBackAction(),
-
-                        new ParallelAction(
-                                this.robot.getLift().liftUpToBasketLevelAction(),
-                                gotoBasket_4.build()
-                        ),
-                        this.robot.getLift().openDropClawAction(),
-                        new ParallelAction(
-                                gotoParking.build(),
-                                this.robot.getLift().liftDownAction()
-                        )
-                )
-        );
     }
 
     private void alignToSample(Pose2d samplePose) {

@@ -12,6 +12,7 @@ public class IntakeHusky {
     public static final float CLAW_POS_X_ON_SCREEN_WRT_CAMERA_START = 230; //pixels
     public static final float CLAW_POS_Y_ON_SCREEN_WRT_CAMERA_START = 100; // pixels
     public static final Vector2d CLAW_POS_WRT_ROBOT_CENTER = new Vector2d(0, 12.5); // inches
+    public static final Rotation2d ROBOT_PLANE_VS_FIELD_ANGLE = Rotation2d.exp(Math.toRadians(-90));
 
     private AnimeRobot robot;
     private HuskyLens huskyLens;
@@ -45,7 +46,12 @@ public class IntakeHusky {
         return huskyLens.blocks();
     }
 
-    public Pose2d didYouFind() {
+    /**
+     * This function uses Huskylense to find the Block, it is finds the block, it transforms the screen coordinates to visible field area coordinates from the center of Robot.
+     *
+     * @return Pose2D Position and Angle of the Block WRT to center of Robot, or null if not finds the block
+     */
+    public Pose2d getBlockPoseWrtRobot() {
         HuskyLens.Block[] blocks = blocks();
         if (blocks.length == 0) {
             return null;
@@ -61,9 +67,22 @@ public class IntakeHusky {
         Rotation2d angleWrtCenterOfRobot = Rotation2d.exp(Math.atan2(blockPosWrtCenterOfRobot.y, blockPosWrtCenterOfRobot.x)).plus(Math.toRadians(-90)).plus(Math.toRadians(2)); // Subtract 90 to make wrt to Y axis and 2 degrees to corrent error
         return new Pose2d(blockPosWrtCenterOfRobot, angleWrtCenterOfRobot);
     }
+
+    /**
+     * This function uses Huskylense to find the Block, it is finds the block, it transforms the screen coordinates to visible field area coordinates from the center of Robot.
+     * After that transform the cordinates from center of Robot to Field center using robot position and angle.
+     *
+     * @return Vector2d Position of the Block WRT to center of Field, or null if not finds the block
+     */
+    public Vector2d getBockPoseWrtField() {
+        Pose2d blockPosWrtCenterOfRobot = getBlockPoseWrtRobot();
+        if(blockPosWrtCenterOfRobot == null) {
+            return null;
+        }
+
+        // transform the block pos wrt to center of field.
+        Pose2d currentRobotPos = this.robot.getDrive().getPose();
+        Vector2d rotatedBlockPosWrtFieldCenter = currentRobotPos.heading.times(ROBOT_PLANE_VS_FIELD_ANGLE.times(blockPosWrtCenterOfRobot.position)).plus(currentRobotPos.position);
+        return rotatedBlockPosWrtFieldCenter;
+    }
 }
-//        // transform the block pos wrt to center of field.
-//        Pose2d currentRobotPos = this.robot.getDrive().getPose();
-//        public static final Rotation2d ROBOT_PLANE_VS_FIELD_ANGLE = Rotation2d.exp(Math.toRadians(-90));
-//        Vector2d rotatedBlockPosWrtFieldCenter = currentRobotPos.heading.times(ROBOT_PLANE_VS_FIELD_ANGLE.times(blockPosWrtCenterOfRobot)).plus(currentRobotPos.position);
-//        return rotatedBlockPosWrtFieldCenter;

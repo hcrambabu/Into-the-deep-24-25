@@ -15,7 +15,6 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -38,7 +37,7 @@ public class AnimeTeleOp extends BaseOpMode {
     DcMotor backRightMotor;
 
     DcMotorEx liftLeft, liftRight, slideLeft, slideRight;
-    CRServo intakeContinuousServo;
+    Servo testServo;
     Servo intakeLiftServo, dropServo, dropClaw, intakeVerticalTurnServo, intakeHorizontalTurnServo, intakeClawServo;
 
     IMU imu;
@@ -63,7 +62,7 @@ public class AnimeTeleOp extends BaseOpMode {
         this.slideLeft = this.robot.getSlideLeft();
         this.slideRight = this.robot.getSlideRight();
 
-        this.intakeContinuousServo = this.robot.getIntakeContinousServo();
+        this.testServo = this.robot.getTestServo();
         this.intakeLiftServo = this.robot.getIntakeLiftServo();
         this.dropServo = this.robot.getDropServo();
         this.dropClaw = this.robot.getDropClaw();
@@ -105,7 +104,7 @@ public class AnimeTeleOp extends BaseOpMode {
             Pose2d rp = this.robot.getDrive().getPose();
             telemetry.addData("Robot", String.format(String.format("X:%.2f, Y:%.2f, A:%.2f", rp.position.x, rp.position.y, Math.toDegrees(rp.heading.toDouble()))));
             telemetry.addLine();
-            Pose2d bp = this.robot.getIntakeHusky().didYouFind();
+            Pose2d bp = this.robot.getIntakeHusky().getBlockPoseWrtRobot();
             if(bp != null)
                 telemetry.addData("Block", String.format(String.format("X:%.2f, Y:%.2f, A:%.2f", bp.position.x, bp.position.y, Math.toDegrees(bp.heading.toDouble()))));
         } else {
@@ -170,11 +169,11 @@ public class AnimeTeleOp extends BaseOpMode {
     private void handleStartButton() {
         if (gamepad2.start) {
             intakeDpadDownRuntime.reset();
-            this.robot.getIntake().goFront();
+            this.robot.getIntake().goFront(true);
         }
 
         if (gamepad1.start) {
-            this.robot.getLift().liftUpToBasketLevel();
+            this.robot.getLift().liftUpToBasketLevel(false);
         }
     }
 
@@ -220,7 +219,7 @@ public class AnimeTeleOp extends BaseOpMode {
 
     private void handleLift() {
         if (gamepad1.a || gamepad2.a) {
-            this.robot.getLift().liftUpToBasketLevel();
+            this.robot.getLift().liftUpToBasketLevel(false);
         } else if (gamepad1.b || gamepad2.b) {
             this.robot.getLift().liftDown();
         } else if (gamepad1.x || gamepad2.x) {

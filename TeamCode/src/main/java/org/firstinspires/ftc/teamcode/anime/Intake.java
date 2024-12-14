@@ -30,6 +30,9 @@ public class Intake {
     private CompletableFuture<Void> currentTask;
     private ElapsedTime intakeRuntime = new ElapsedTime();
 
+    private CompletableFuture<Void> goBacktask;
+    private CompletableFuture<Void> liftUpToBasketLevelTask;
+
     public Intake(AnimeRobot robot) {
         this.robot = robot;
     }
@@ -44,7 +47,7 @@ public class Intake {
     }
 
     public void handleSlideManually(double manualPower) {
-        if (currentTask != null && !currentTask.isDone()) {
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
         }
 
@@ -56,17 +59,25 @@ public class Intake {
     }
 
     public void goBack() {
-        if (currentTask != null && !currentTask.isDone()) {
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
         }
-        this.currentTask = CompletableFuture.runAsync(() -> goBackTask());
+        this.currentTask = CompletableFuture.runAsync(() -> goBackTask(true));
     }
 
-    public void goFront() {
-        if (currentTask != null && !currentTask.isDone()) {
+    public void goFront(boolean cancelGoBackTask) {
+        if(cancelGoBackTask && goBacktask != null && !goBacktask.isDone() && !goBacktask.isCancelled()) {
+            goBacktask.cancel(true);
+        }
+        if(cancelGoBackTask && liftUpToBasketLevelTask != null && !liftUpToBasketLevelTask.isDone() && !liftUpToBasketLevelTask.isCancelled()) {
+            liftUpToBasketLevelTask.cancel(true);
+        }
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
         }
-        this.currentTask = CompletableFuture.runAsync(() -> goFrontTask());
+
+        this.currentTask = CompletableFuture.runAsync(() -> goFrontTask()); //goFrontTask  catchSampleTask
+        goBacktask = currentTask;
     }
 
     public Action goFrontAction() {
@@ -74,7 +85,7 @@ public class Intake {
     }
 
     public Action goBackAction() {
-        return new AnimeAction(() -> goBackTask());
+        return new AnimeAction(() -> goBackTask(false));
     }
 
     public Action intakeArmDownAction() {
@@ -97,27 +108,46 @@ public class Intake {
         });
     }
 
-    public Action catchSampleAction() {
+    public Action CloseClawAction() {
         return new AnimeAction(() -> {
-            robot.setIntakeClawServoPos(INTAKE_CLAW_OPEN_POS);
-            this.robot.setIntakeHorizontalTurnServoPos(AnimeRobot.INTAKE_ROTATING_SERVO_HORIZANTAL_POS);
-            robot.setIntakeFaceUpDownServoPos(INTAKE_FACE_DOWN_POS);
-            this.robot.sleep(300);
-            robot.setIntakeLiftServoPos(INTAKE_LIFT_FULL_DOWN_POS);
-            this.robot.sleep(500);
             robot.setIntakeClawServoPos(INTAKE_CLAW_CLOSE_POS);
-            this.robot.sleep(400);
         });
     }
 
+    public Action trunFaceAndOpenClawAction() {
+        return new AnimeAction(() -> {
+            robot.setIntakeLiftServoPos(INTAKE_LIFT_DOWN_POS_1);
+            robot.setIntakeFaceUpDownServoPos(INTAKE_FACE_DOWN_POS);
+            this.robot.sleep(200);
+            robot.setIntakeClawServoPos(INTAKE_CLAW_OPEN_POS);
+            this.robot.sleep(200);
+        });
+    }
 
-    public void goBackTask() {
+    public Action catchSampleAction() {
+        return new AnimeAction(() -> {
+            catchSampleTask();
+        });
+    }
+
+    public void catchSampleTask() {
+        robot.setIntakeClawServoPos(INTAKE_CLAW_OPEN_POS);
+        this.robot.setIntakeHorizontalTurnServoPos(AnimeRobot.INTAKE_ROTATING_SERVO_HORIZANTAL_POS);
+        robot.setIntakeFaceUpDownServoPos(INTAKE_FACE_DOWN_POS);
+        this.robot.sleep(500);
+        robot.setIntakeLiftServoPos(INTAKE_LIFT_FULL_DOWN_POS);
+        this.robot.sleep(400);
+        robot.setIntakeClawServoPos(INTAKE_CLAW_CLOSE_POS);
+        this.robot.sleep(400);
+    }
+
+    public void goBackTask(boolean moveLiftUp) {
         this.robot.setIntakeFaceUpDownServoPos(AnimeRobot.INTAKE_FACE_UP_POS);
-        this.robot.sleep(300);
         this.robot.setDropServoPos(DROP_SERVO_INIT_POS);
         this.robot.setDropClawServoPos(DROP_CLAW_OPEN_POS);
         this.robot.setIntakeClawServoPos(INTAKE_CLAW_CLOSE_POS);
         this.robot.setIntakeHorizontalTurnServoPos(AnimeRobot.INTAKE_ROTATING_SERVO_HORIZANTAL_POS);
+        this.robot.sleep(300);
         this.robot.setIntakeLiftServoPos(INTAKE_LIFT_UP_POS);
 
         this.robot.slideLeft.setTargetPosition(-20);
@@ -149,6 +179,9 @@ public class Intake {
         this.robot.sleep(200);// wait for drop claw to close
         this.robot.setIntakeClawServoPos(INTAKE_CLAW_OPEN_POS);
         this.robot.sleep(100);
+        if(moveLiftUp) {
+            liftUpToBasketLevelTask = this.robot.getLift().liftUpToBasketLevel(true);
+        }
     }
 
     public void goFrontTask() {
@@ -161,7 +194,7 @@ public class Intake {
     }
 
     public void resetIntake() {
-        if (currentTask != null && !currentTask.isDone()) {
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
         }
         this.currentTask = CompletableFuture.runAsync(() -> resetIntakeTask());
@@ -196,7 +229,7 @@ public class Intake {
         while (this.robot.getOpMode().opModeIsActive() &&
                 (intakeRuntime.seconds() < timeout) &&
                 this.robot.slideLeft.isBusy() && this.robot.slideRight.isBusy()) {
-            blockPose = this.robot.getIntakeHusky().didYouFind();
+            blockPose = this.robot.getIntakeHusky().getBlockPoseWrtRobot();
             if(blockPose != null && blockPose.position.y < 13.5) {
                 break;
             }
@@ -215,7 +248,7 @@ public class Intake {
     }
 
     public void searchForSample(double timeout, double maxSlideInches) {
-        if (currentTask != null && !currentTask.isDone()) {
+        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
         }
         this.currentTask = CompletableFuture.runAsync(() -> searchForSampleTask(timeout, maxSlideInches));

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.anime;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriverRR;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
@@ -17,6 +18,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.roadrunner.PinpointDrive;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 
@@ -426,5 +428,21 @@ public class AnimeRobot {
 
     public void sleep(long millis) {
         this.opMode.sleep(millis);
+    }
+
+    private CompletableFuture<Void> currentGoBackTask;
+    public void goToBasket() {
+        if (currentGoBackTask != null && !currentGoBackTask.isDone() && !currentGoBackTask.isCancelled()) {
+            return;
+        }
+
+        currentGoBackTask = CompletableFuture.runAsync(() -> {
+            Actions.runBlocking(
+                    drive.actionBuilder(drive.getPose())
+                            .setTangent(135)
+                            .splineToLinearHeading(new Pose2d(-52, -52, Math.toRadians(45)), Math.toRadians(180))
+                            .build()
+            );
+        });
     }
 }

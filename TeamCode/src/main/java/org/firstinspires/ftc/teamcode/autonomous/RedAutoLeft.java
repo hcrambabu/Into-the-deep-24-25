@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.anime.BaseOpMode;
 @Autonomous(group = "Anime", name = "Left")
 //@TeleOp(group = "Anime", name = "Anime: RedLeft")
 public class RedAutoLeft extends BaseOpMode {
-    public static final double TIME_GAP_FOR_LIFT = 0.5;
+    public static final double TIME_GAP_FOR_LIFT = 0.7;
     public static final double TIME_FACT = 2;
     public static final boolean GO_FOR_3rd_SAMPLE = false;
 

@@ -26,6 +26,8 @@ public class Lift {
 
     private ElapsedTime liftRuntime = new ElapsedTime();
 
+    private boolean runUsingEncoder = false;
+
     public Lift(AnimeRobot robot) {
         this.robot = robot;
     }
@@ -42,6 +44,16 @@ public class Lift {
     public void handleLiftManually(double manualPower) {
         if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
             return;
+        }
+
+        if(robot.getOpMode().gamepad2.left_stick_button && !runUsingEncoder) {
+            this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.robot.liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            runUsingEncoder = true;
+        } else if(!robot.getOpMode().gamepad2.left_stick_button && runUsingEncoder){
+            this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.robot.liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            runUsingEncoder = false;
         }
 
         double liftPower = manualPower;

@@ -127,7 +127,14 @@ public class AnimeTeleOp extends BaseOpMode {
         handleStartButton();
         handleBackButton();
 //        searchForSample();
+        goBackToBasket();
         addTelemetry();
+    }
+
+    private void goBackToBasket() {
+        if(gamepad1.right_trigger > 0.5) {
+            this.robot.goToBasket();
+        }
     }
 
     private void searchForSample() {
@@ -198,7 +205,7 @@ public class AnimeTeleOp extends BaseOpMode {
         } else if (gamepad2.dpad_left) {
             this.robot.setIntakeFaceUpDownServoPos(INTAKE_FACE_DOWN_POS);
         }
-        
+
         // Intake Horizontal Turn Servo
         if (gamepad2.left_trigger > 0.5) {
             this.robot.stepDownIntakeHorizantalServoPos();

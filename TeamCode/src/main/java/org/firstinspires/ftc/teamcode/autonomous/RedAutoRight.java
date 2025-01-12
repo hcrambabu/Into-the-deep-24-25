@@ -45,13 +45,13 @@ public class RedAutoRight extends BaseOpMode {
                 .strafeTo(new Vector2d(63, -52), pushVelConstraint);
         waitForStart();
 
-        Actions.runBlocking(
-                new SequentialAction(
-                        this.robot.getIntake().CloseClawAction(),
-                        trajectoryActionBuilder.build(),
-                        this.robot.getIntake().trunFaceAndOpenClawAction(),
-                        new SleepAction(2)
-                )
-        );
+//        Actions.runBlocking(
+//                new SequentialAction(
+//                        this.robot.getIntake().CloseClawAction(),
+//                        trajectoryActionBuilder.build(),
+//                        this.robot.getIntake().trunFaceAndOpenClawAction(),
+//                        new SleepAction(2)
+//                )
+//        );
     }
 }

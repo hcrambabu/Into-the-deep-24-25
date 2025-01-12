@@ -57,128 +57,128 @@ public class RedAutoLeft extends BaseOpMode {
 
         waitForStart();
         // Goto Basket and Drop the Sample
-        Actions.runBlocking(
-                new SequentialAction(
-                        new ParallelAction(
-                                this.robot.getLift().liftUpToBasketLevelAction(),
-                                new SequentialAction(
-                                        new SleepAction(TIME_GAP_FOR_LIFT),
-                                        gotoBasket_1.build()
-                                )
-                        ),
-                        this.robot.getLift().openDropClawAction(),
-                        new ParallelAction(
-                                gotoSample_1.build(),
-                                new SequentialAction(
-                                        new SleepAction(TIME_GAP_FOR_LIFT),
-                                        this.robot.getLift().liftDownAction()
-                                )
-//                                this.robot.getIntake().OpenClawAction()
-                        )
-                )
-        );
-        // Search For Sample-1
-        Pose2d samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 10);
-        if (samplePose != null) {
-            alignToSample(samplePose);
-        }
-        // Catch Sample-1 and Drop it into basket
-        Actions.runBlocking(
-                new SequentialAction(
-                        this.robot.getIntake().catchSampleAction(),
-                        this.robot.getIntake().goBackAction(),
-                        new ParallelAction(
-                                this.robot.getLift().liftUpToBasketLevelAction(),
-                                new SequentialAction(
-                                        new SleepAction(TIME_GAP_FOR_LIFT * TIME_FACT),
-                                        gotoBasket_2.build()
-                                )
-                        ),
-
-                        this.robot.getLift().openDropClawAction(),
-                        new ParallelAction(
-                                gotoSample_2.build(),
-                                new SequentialAction(
-                                        new SleepAction(TIME_GAP_FOR_LIFT),
-                                        this.robot.getLift().liftDownAction()
-                                )
-                        )
-                )
-        );
-        // Search For Sample-2
-        samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 10);
-        if (samplePose != null) {
-            alignToSample(samplePose);
-        }
-        // Catch Sample-2 and Drop it into basket
-        Actions.runBlocking(
-                new SequentialAction(
-                        this.robot.getIntake().catchSampleAction(),
-                        this.robot.getIntake().goBackAction(),
-                        new ParallelAction(
-                                this.robot.getLift().liftUpToBasketLevelAction(),
-                                new SequentialAction(
-                                        new SleepAction(TIME_GAP_FOR_LIFT * TIME_FACT),
-                                        gotoBasket_3.build()
-                                )
-                        ),
-
-                        this.robot.getLift().openDropClawAction()
-                )
-        );
-
-        if (GO_FOR_3rd_SAMPLE) {
-            Actions.runBlocking(
-                    new SequentialAction(
-                            new ParallelAction(
-                                    gotoSample_3.build(),
-                                    new SequentialAction(
-                                            new SleepAction(TIME_GAP_FOR_LIFT),
-                                            this.robot.getLift().liftDownAction()
-                                    )
-                            )
-                    )
-            );
-
-            // Search For Sample-3
-            samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 13);
-            if (samplePose != null) {
-                alignToSample(samplePose);
-            }
-            // Catch Sample-2 and Drop it into basket
-            Actions.runBlocking(
-                    new SequentialAction(
-                            this.robot.getIntake().catchSampleAction(),
-                            this.robot.getIntake().goBackAction(),
-
-                            new ParallelAction(
-                                    this.robot.getLift().liftUpToBasketLevelAction(),
-                                    new SequentialAction(
-                                            new SleepAction(TIME_GAP_FOR_LIFT * TIME_FACT),
-                                            gotoBasket_4.build()
-                                    )
-                            ),
-                            this.robot.getLift().openDropClawAction(),
-                            new ParallelAction(
-                                    gotoParkingAfterSample3.build(),
-                                    new SequentialAction(
-                                            new SleepAction(TIME_GAP_FOR_LIFT),
-                                            this.robot.getLift().liftDownAction()
-                                    )
-                            )
-                    )
-            );
-        } else {
-            Actions.runBlocking(
-                    new ParallelAction(
-                            gotoParkingAfterSample2.build(),
-                            new SequentialAction(
-                                    new SleepAction(TIME_GAP_FOR_LIFT),
-                                    this.robot.getLift().liftDownAction()
-                            )
-                    )
-            );
-        }
+//        Actions.runBlocking(
+//                new SequentialAction(
+//                        new ParallelAction(
+//                                this.robot.getLift().liftUpToBasketLevelAction(),
+//                                new SequentialAction(
+//                                        new SleepAction(TIME_GAP_FOR_LIFT),
+//                                        gotoBasket_1.build()
+//                                )
+//                        ),
+//                        this.robot.getLift().openDropClawAction(),
+//                        new ParallelAction(
+//                                gotoSample_1.build(),
+//                                new SequentialAction(
+//                                        new SleepAction(TIME_GAP_FOR_LIFT),
+//                                        this.robot.getLift().liftDownAction()
+//                                )
+////                                this.robot.getIntake().OpenClawAction()
+//                        )
+//                )
+//        );
+//        // Search For Sample-1
+//        Pose2d samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 10);
+//        if (samplePose != null) {
+//            alignToSample(samplePose);
+//        }
+//        // Catch Sample-1 and Drop it into basket
+//        Actions.runBlocking(
+//                new SequentialAction(
+//                        this.robot.getIntake().catchSampleAction(),
+//                        this.robot.getIntake().goBackAction(),
+//                        new ParallelAction(
+//                                this.robot.getLift().liftUpToBasketLevelAction(),
+//                                new SequentialAction(
+//                                        new SleepAction(TIME_GAP_FOR_LIFT * TIME_FACT),
+//                                        gotoBasket_2.build()
+//                                )
+//                        ),
+//
+//                        this.robot.getLift().openDropClawAction(),
+//                        new ParallelAction(
+//                                gotoSample_2.build(),
+//                                new SequentialAction(
+//                                        new SleepAction(TIME_GAP_FOR_LIFT),
+//                                        this.robot.getLift().liftDownAction()
+//                                )
+//                        )
+//                )
+//        );
+//        // Search For Sample-2
+//        samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 10);
+//        if (samplePose != null) {
+//            alignToSample(samplePose);
+//        }
+//        // Catch Sample-2 and Drop it into basket
+//        Actions.runBlocking(
+//                new SequentialAction(
+//                        this.robot.getIntake().catchSampleAction(),
+//                        this.robot.getIntake().goBackAction(),
+//                        new ParallelAction(
+//                                this.robot.getLift().liftUpToBasketLevelAction(),
+//                                new SequentialAction(
+//                                        new SleepAction(TIME_GAP_FOR_LIFT * TIME_FACT),
+//                                        gotoBasket_3.build()
+//                                )
+//                        ),
+//
+//                        this.robot.getLift().openDropClawAction()
+//                )
+//        );
+//
+//        if (GO_FOR_3rd_SAMPLE) {
+//            Actions.runBlocking(
+//                    new SequentialAction(
+//                            new ParallelAction(
+//                                    gotoSample_3.build(),
+//                                    new SequentialAction(
+//                                            new SleepAction(TIME_GAP_FOR_LIFT),
+//                                            this.robot.getLift().liftDownAction()
+//                                    )
+//                            )
+//                    )
+//            );
+//
+//            // Search For Sample-3
+//            samplePose = this.robot.getIntake().searchForSampleUsingSlide(10, 13);
+//            if (samplePose != null) {
+//                alignToSample(samplePose);
+//            }
+//            // Catch Sample-2 and Drop it into basket
+//            Actions.runBlocking(
+//                    new SequentialAction(
+//                            this.robot.getIntake().catchSampleAction(),
+//                            this.robot.getIntake().goBackAction(),
+//
+//                            new ParallelAction(
+//                                    this.robot.getLift().liftUpToBasketLevelAction(),
+//                                    new SequentialAction(
+//                                            new SleepAction(TIME_GAP_FOR_LIFT * TIME_FACT),
+//                                            gotoBasket_4.build()
+//                                    )
+//                            ),
+//                            this.robot.getLift().openDropClawAction(),
+//                            new ParallelAction(
+//                                    gotoParkingAfterSample3.build(),
+//                                    new SequentialAction(
+//                                            new SleepAction(TIME_GAP_FOR_LIFT),
+//                                            this.robot.getLift().liftDownAction()
+//                                    )
+//                            )
+//                    )
+//            );
+//        } else {
+//            Actions.runBlocking(
+//                    new ParallelAction(
+//                            gotoParkingAfterSample2.build(),
+//                            new SequentialAction(
+//                                    new SleepAction(TIME_GAP_FOR_LIFT),
+//                                    this.robot.getLift().liftDownAction()
+//                            )
+//                    )
+//            );
+//        }
     }
 
     private void alignToSample(Pose2d samplePose) {

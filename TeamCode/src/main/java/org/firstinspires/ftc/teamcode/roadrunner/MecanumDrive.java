@@ -76,7 +76,7 @@ public class MecanumDrive {
             ));
     public final AccelConstraint defaultAccelConstraint =
             new ProfileAccelConstraint(PARAMS.minProfileAccel, PARAMS.maxProfileAccel);
-    public final DcMotorEx leftFront, leftBack, rightBack, rightFront;
+        public final DcMotorEx leftFront, leftBack, rightBack, rightFront;
     public final VoltageSensor voltageSensor;
     public final Localizer localizer;
     public final LinkedList<Pose2d> poseHistory = new LinkedList<>();
@@ -88,7 +88,7 @@ public class MecanumDrive {
     public Pose2d pose;
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
         this.pose = pose;
-        LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
+        //LynxFirmware.throwIfModulesAreOutdated(hardwareMap); // rambabu update frimware
 
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);

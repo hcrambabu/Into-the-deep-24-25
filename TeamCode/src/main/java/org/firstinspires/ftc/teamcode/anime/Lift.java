@@ -1,270 +1,205 @@
 package org.firstinspires.ftc.teamcode.anime;
 
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_CLAW_CLOSE_POS;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_CLAW_OPEN_POS;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_SERVO_INIT_POS;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_SERVO_OUT_POS;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_SERVO_SPECIMEN_COLLECT_POS;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.DROP_SERVO_SPECIMEN_HANG_POS;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.LIFT_MAX_HEIGHT;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.LIFT_MIN_HEIGHT;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.LIFT_SPECIMEN_HANG_HEIGHT;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.LIFT_SPECIMEN_PICK_UP_HEIGHT;
-import static org.firstinspires.ftc.teamcode.anime.AnimeRobot.MIN_LIFT_POWER;
-
-import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 public class Lift {
+
+    public static final double LOWER_LIFT_SERVOS_MIN_POS = 0.0;
+    public static final double LOWER_LIFT_SERVOS_MAX_POS = 1.0;
+    public static final double LOWER_LIFT_INCREMENT = 0.01;
+    public static final double UPPER_LIFT_SERVOS_MIN_POS = 0.0;
+    public static final double UPPER_LIFT_SERVOS_MAX_POS = 1.0;
+    public static final double UPPER_LIFT_INCREMENT = 0.01;
     private static Logger log = Logger.getLogger(Lift.class.getName());
     private AnimeRobot robot;
+    private HardwareMap hardwareMap;
+    Telemetry telemetry;
+    Servo lowerLeftServo, lowerRightServo, upperLeftServo, upperRightServo;
+    AnalogInput llsai, lrsai, ulsai, ursai;
+
+    DcMotorEx lowerLiftMotor, upperLiftMotor;
+    RevColorSensorV3 specimenColorSensor;
     private CompletableFuture<Void> currentTask;
 
+    private double lowerLiftServoPos = LOWER_LIFT_SERVOS_MIN_POS;
+    private double upperLiftServoPos = UPPER_LIFT_SERVOS_MAX_POS;
+
     private ElapsedTime liftRuntime = new ElapsedTime();
-
-    private boolean runUsingEncoder = false;
-
     public Lift(AnimeRobot robot) {
         this.robot = robot;
+        this.robot = robot;
+        this.telemetry = this.robot.getOpMode().telemetry;
+        this.hardwareMap = this.robot.getHardwareMap();
+
+        this.specimenColorSensor = hardwareMap.get(RevColorSensorV3.class, "specimenColor");
+
+        this.lowerLeftServo = hardwareMap.get(Servo.class, "lls"); // Lower Left Servo
+        this.lowerRightServo = hardwareMap.get(Servo.class, "lrs"); // Lower Right Servo
+        this.upperLeftServo = hardwareMap.get(Servo.class, "uls"); // Upper Left Servo
+        this.upperRightServo = hardwareMap.get(Servo.class, "urs"); // Upper Right Servo
+
+        this.lowerLeftServo.setDirection(Servo.Direction.REVERSE);
+        this.upperLeftServo.setDirection(Servo.Direction.REVERSE);
+
+        this.llsai = hardwareMap.get(AnalogInput.class, "llsai"); // Lower Left Servo Analog Input
+        this.lrsai = hardwareMap.get(AnalogInput.class, "lrsai"); // Lower Right Servo Analog Input
+        this.ulsai = hardwareMap.get(AnalogInput.class, "ulsai"); // Upper Left Servo Analog Input
+        this.ursai = hardwareMap.get(AnalogInput.class, "ursai"); // Upper Right Servo Analog Input
+
+        setLowerLiftServoPos(lowerLiftServoPos);
+        setUpperLiftServoPos(upperLiftServoPos);
+
+        this.lowerLiftMotor = hardwareMap.get(DcMotorEx.class, "llm");
+        this.upperLiftMotor = hardwareMap.get(DcMotorEx.class, "ulm");
+
+
+        this.lowerLiftMotor.setDirection(DcMotor.Direction.REVERSE);
+        this.lowerLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.upperLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.lowerLiftMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        this.upperLiftMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        this.lowerLiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        this.upperLiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    public double checkLiftPower(double liftPower) {
-        if (liftPower > 0 && (robot.liftLeft.getCurrentPosition() > LIFT_MAX_HEIGHT || robot.liftRight.getCurrentPosition() > LIFT_MAX_HEIGHT)) {
-            liftPower = MIN_LIFT_POWER;
-        } else if (liftPower < 0 && (robot.liftLeft.getCurrentPosition() < LIFT_MIN_HEIGHT || robot.liftRight.getCurrentPosition() < LIFT_MIN_HEIGHT)) {
-            liftPower = -MIN_LIFT_POWER;
-        }
-        return liftPower;
+    public Servo getLowerLeftServo() {
+        return lowerLeftServo;
     }
 
-    public void handleLiftManually(double manualPower) {
-        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
-            return;
-        }
+    public Servo getLowerRightServo() {
+        return lowerRightServo;
+    }
 
-        if(robot.getOpMode().gamepad2.left_stick_button && !runUsingEncoder) {
-            this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            this.robot.liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            runUsingEncoder = true;
-        } else if(!robot.getOpMode().gamepad2.left_stick_button && runUsingEncoder){
-            this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            this.robot.liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            runUsingEncoder = false;
-        }
+    public Servo getUpperLeftServo() {
+        return upperLeftServo;
+    }
 
-        double liftPower = manualPower;
-        liftPower = this.robot.getLift().checkLiftPower(liftPower);
-        if (liftPower > 0) {
-            this.robot.setHoldLift(true);
-        } else if (liftPower == 0 && this.robot.isHoldLift()) {
-            liftPower = MIN_LIFT_POWER;
+    public Servo getUpperRightServo() {
+        return upperRightServo;
+    }
+
+    public AnalogInput getLlsai() {
+        return llsai;
+    }
+
+    public AnalogInput getLrsai() {
+        return lrsai;
+    }
+
+    public AnalogInput getUlsai() {
+        return ulsai;
+    }
+
+    public AnalogInput getUrsai() {
+        return ursai;
+    }
+
+    public RevColorSensorV3 getSpecimenColorSensor() {
+        return specimenColorSensor;
+    }
+
+    public double getLowerLiftServoPos() {
+        return lowerLiftServoPos;
+    }
+
+    public double getUpperLiftServoPos() {
+        return upperLiftServoPos;
+    }
+
+    public void setLowerLiftServoPos(double pos) {
+        this.lowerLiftServoPos = pos;
+        this.lowerLeftServo.setPosition(this.lowerLiftServoPos);
+        this.lowerRightServo.setPosition(this.lowerLiftServoPos);
+    }
+
+    public void setUpperLiftServoPos(double pos) {
+        this.upperLiftServoPos = pos;
+        this.upperLeftServo.setPosition(this.upperLiftServoPos);
+        this.upperRightServo.setPosition(this.upperLiftServoPos);
+    }
+
+    public void adjustLowerLift(double multiplier) {
+        double pos = this.getLowerLiftServoPos() + (LOWER_LIFT_INCREMENT * multiplier);
+        if(pos > LOWER_LIFT_SERVOS_MAX_POS) {
+            pos = LOWER_LIFT_SERVOS_MAX_POS;
+        } else if(pos < LOWER_LIFT_SERVOS_MIN_POS) {
+            pos = LOWER_LIFT_SERVOS_MIN_POS;
+        }
+        setLowerLiftServoPos(pos);
+    }
+
+    public void adjustUpperLift(double multiplier) {
+        double pos = this.getUpperLiftServoPos() + (UPPER_LIFT_INCREMENT * multiplier);
+        if(pos > UPPER_LIFT_SERVOS_MAX_POS) {
+            pos = UPPER_LIFT_SERVOS_MAX_POS;
+        } else if(pos < UPPER_LIFT_SERVOS_MIN_POS) {
+            pos = UPPER_LIFT_SERVOS_MIN_POS;
+        }
+        setUpperLiftServoPos(pos);
+    }
+
+    private double getActPos(AnalogInput ai) {
+        return ai.getVoltage() / 3.3 * 360;
+    }
+
+    public double getLlsaiPos() {
+        return getActPos(llsai);
+    }
+
+    public double getLrsaiPos() {
+        return getActPos(lrsai);
+    }
+
+    public double getUlsaiPos() {
+        return getActPos(ulsai);
+    }
+
+    public double getUrsaiPos() {
+        return getActPos(ursai);
+    }
+
+    public void handleKeyPress(Gamepad gamepad1, Gamepad gamepad2) {
+//        adjustLowerLift(-gamepad2.left_stick_y);
+//        adjustUpperLift(-gamepad2.right_stick_y);
+
+        if(Math.abs(gamepad2.left_stick_y) > 0.5 && this.lowerLiftMotor.getCurrentPosition() < 400) {
+            this.lowerLiftMotor.setPower(-gamepad2.left_stick_y);
         } else {
-            this.robot.setHoldLift(false);
+            this.lowerLiftMotor.setPower(0.4);
         }
 
-        if (this.robot.hangTheBot) {
-            liftPower = -1;
-        }
-
-        this.robot.liftLeft.setPower(liftPower);
-        this.robot.liftRight.setPower(liftPower);
+        this.upperLiftMotor.setPower(-gamepad2.right_stick_y);
+        this.telemetry.addData("lift power", "lower: %.3f, upper: %.3f", this.lowerLiftMotor.getPower(), this.upperLiftMotor.getPower());
+        this.telemetry.addData("lift pos", "lower: %d, upper: %d", this.lowerLiftMotor.getCurrentPosition(), this.upperLiftMotor.getCurrentPosition());
+        updateTelemetry();
     }
 
-    public void liftDown() {
-        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
-            return;
-        }
-        this.currentTask = CompletableFuture.runAsync(() -> liftDownTask());
-    }
-
-    public CompletableFuture<Void> liftUpToBasketLevel(boolean cancelCurrentTask) {
-        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
-            if(cancelCurrentTask) {
-                currentTask.cancel(true);
-            } else {
-                return null;
-            }
-        }
-        this.currentTask = CompletableFuture.runAsync(() -> liftUpToBasketTask());
-        return currentTask;
-    }
-
-    public void specimenPickup() {
-        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
-            return;
-        }
-        this.currentTask = CompletableFuture.runAsync(() -> specimenPickupTask());
-    }
-
-    public void specimenDrop() {
-        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
-            return;
-        }
-        this.currentTask = CompletableFuture.runAsync(() -> specimenHangTask());
-    }
-
-    public Action liftDownAction() {
-        return new AnimeAction(() -> liftDownTask());
-    }
-
-    public Action liftUpToBasketLevelAction() {
-        return new AnimeAction(() -> liftUpToBasketTask());
-    }
-
-    public Action specimenPickupAction() {
-        return new AnimeAction(() -> specimenPickupTask());
-    }
-
-    public Action specimenHangAction() {
-        return new AnimeAction(() -> specimenHangTask());
-    }
-
-    public Action openDropClawAction() {
-        return new AnimeAction(() -> {
-            robot.setDropClawServoPos(DROP_CLAW_OPEN_POS);
-            this.robot.sleep(200);
-        });
-    }
-
-    public void dropServoOut() {
-        CompletableFuture.runAsync(() -> {
-            this.robot.sleep(200);
-            dropServoOutTask();
-        });
-    }
-
-    public void dropServoOutTask() {
-        this.robot.setDropServoPos(DROP_SERVO_OUT_POS);
-        this.robot.sleep(200);
-    }
-
-    public void liftDownTask() {
-        this.robot.setDropClawServoPos(DROP_CLAW_OPEN_POS);
-        this.robot.setDropServoPos(DROP_SERVO_INIT_POS);
-
-        this.robot.liftLeft.setTargetPosition(-20);
-        this.robot.liftRight.setTargetPosition(-20);
-        this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        this.robot.liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        this.robot.liftLeft.setPower(1);
-        this.robot.liftRight.setPower(1);
-
-        liftRuntime.reset();
-        while (this.robot.getOpMode().opModeIsActive() &&
-                (liftRuntime.seconds() < 2.5) &&
-                this.robot.liftLeft.isBusy() && this.robot.liftRight.isBusy()) {
-            if (robot.liftLeft.getCurrentPosition() < LIFT_MIN_HEIGHT || robot.liftRight.getCurrentPosition() < LIFT_MIN_HEIGHT) {
-                this.robot.liftLeft.setPower(MIN_LIFT_POWER);
-                this.robot.liftRight.setPower(MIN_LIFT_POWER);
-            }
-            this.robot.getOpMode().idle();
-        }
-        this.robot.liftLeft.setPower(0);
-        this.robot.liftRight.setPower(0);
-        this.robot.setHoldLift(false);
-        this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.robot.liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    }
-
-    public void liftUpToBasketTask() {
-
-        this.robot.setDropClawServoPos(DROP_CLAW_CLOSE_POS);
-        this.dropServoOut(); // this with bring drop arm out
-
-        int reducedSpeedPoint = LIFT_MAX_HEIGHT - 100;
-        this.robot.liftLeft.setTargetPosition(LIFT_MAX_HEIGHT);
-        this.robot.liftRight.setTargetPosition(LIFT_MAX_HEIGHT);
-        this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        this.robot.liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        this.robot.liftLeft.setPower(1);
-        this.robot.liftRight.setPower(1);
-        liftRuntime.reset();
-        while (this.robot.getOpMode().opModeIsActive() &&
-                (liftRuntime.seconds() < 2.5) &&
-                this.robot.liftLeft.isBusy() && this.robot.liftRight.isBusy()) {
-            if (robot.liftLeft.getCurrentPosition() > reducedSpeedPoint || robot.liftRight.getCurrentPosition() > reducedSpeedPoint) {
-                this.robot.liftLeft.setPower(MIN_LIFT_POWER);
-                this.robot.liftRight.setPower(MIN_LIFT_POWER);
-            }
-            this.robot.getOpMode().idle();
-        }
-
-        this.robot.liftLeft.setPower(MIN_LIFT_POWER);
-        this.robot.liftRight.setPower(MIN_LIFT_POWER);
-        this.robot.setHoldLift(true);
-        this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.robot.liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    }
-
-    public void specimenPickupTask() {
-
-        this.robot.liftLeft.setTargetPosition(LIFT_SPECIMEN_PICK_UP_HEIGHT);
-        this.robot.liftRight.setTargetPosition(LIFT_SPECIMEN_PICK_UP_HEIGHT);
-        this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        this.robot.liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        this.robot.liftLeft.setPower(1);
-        this.robot.liftRight.setPower(1);
-
-        liftRuntime.reset();
-        while (this.robot.getOpMode().opModeIsActive() &&
-                (liftRuntime.seconds() < 2.5) &&
-                this.robot.liftLeft.isBusy() && this.robot.liftRight.isBusy()) {
-            this.robot.getOpMode().idle();
-        }
-
-        this.robot.liftLeft.setPower(MIN_LIFT_POWER);
-        this.robot.liftRight.setPower(MIN_LIFT_POWER);
-        this.robot.setHoldLift(true);
-        this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.robot.liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        this.robot.setDropClawServoPos(DROP_CLAW_OPEN_POS);
-        this.robot.setDropServoPos(DROP_SERVO_SPECIMEN_COLLECT_POS);
-    }
-
-    public void specimenHangTask() {
-
-        this.robot.setDropClawServoPos(DROP_CLAW_CLOSE_POS);
-
-        this.robot.liftLeft.setTargetPosition(LIFT_SPECIMEN_HANG_HEIGHT);
-        this.robot.liftRight.setTargetPosition(LIFT_SPECIMEN_HANG_HEIGHT);
-        this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        this.robot.liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        this.robot.liftLeft.setPower(1);
-        this.robot.liftRight.setPower(1);
-
-        liftRuntime.reset();
-        while (this.robot.getOpMode().opModeIsActive() &&
-                (liftRuntime.seconds() < 2.5) &&
-                this.robot.liftLeft.isBusy() && this.robot.liftRight.isBusy()) {
-            this.robot.getOpMode().idle();
-        }
-
-        this.robot.liftLeft.setPower(MIN_LIFT_POWER);
-        this.robot.liftRight.setPower(MIN_LIFT_POWER);
-        this.robot.setHoldLift(true);
-        this.robot.liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.robot.liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        this.robot.setDropServoPos(DROP_SERVO_SPECIMEN_HANG_POS);
-    }
-
-    public void resetLift() {
-        if (currentTask != null && !currentTask.isDone() && !currentTask.isCancelled()) {
-            return;
-        }
-        this.currentTask = CompletableFuture.runAsync(() -> resetLiftTask());
-    }
-
-    public void resetLiftTask() {
-        this.robot.resetMotors("Lift", this.robot.liftLeft, this.robot.liftRight, liftRuntime);
+    public void updateTelemetry() {
+        this.telemetry.addLine();
+        this.telemetry.addData("Lower",
+                String.format("InPos: %.3f, LPos: %.3f, RPos: %.3f, LAPos:%.3f,  RAPos:%.3f",
+                        this.lowerLiftServoPos,
+                        this.lowerLeftServo.getPosition(), this.lowerRightServo.getPosition(),
+                        getLlsaiPos(), getLrsaiPos()));
+        this.telemetry.addData("Upper",
+                String.format("InPos: %.3f, LPos: %.3f, RPos: %.3f, LAPos:%.3f,  RAPos:%.3f",
+                        this.upperLiftServoPos,
+                        this.upperLeftServo.getPosition(), this.upperRightServo.getPosition(),
+                        getUlsaiPos(), getUrsaiPos()));
+        this.telemetry.addData("specimenDis", String.format("%.3f cm", this.specimenColorSensor.getDistance(DistanceUnit.CM)));
+        this.telemetry.addData("specimenColor", ColorUtility.getColorName(this.specimenColorSensor.getNormalizedColors()).name());
     }
 }

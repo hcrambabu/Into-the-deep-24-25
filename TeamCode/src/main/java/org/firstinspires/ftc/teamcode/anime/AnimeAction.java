@@ -24,4 +24,8 @@ public class AnimeAction implements Action {
         }
         return !this.actionTask.isDone();
     }
+
+    public static AnimeAction createAction(Runnable task) {
+        return new AnimeAction(task);
+    }
 }

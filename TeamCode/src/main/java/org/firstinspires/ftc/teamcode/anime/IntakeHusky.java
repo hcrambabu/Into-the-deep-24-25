@@ -22,7 +22,7 @@ public class IntakeHusky {
 
     public IntakeHusky(AnimeRobot robot) {
         this.robot = robot;
-        this.huskyLens = robot.getIntakeHuskyLens();
+        //this.huskyLens = robot.getIntakeHuskyLens();
 
         this.selectAlgorithm(HuskyLens.Algorithm.OBJECT_TRACKING);
         if (!huskyLens.knock()) {

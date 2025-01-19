@@ -1,12 +1,15 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.acmerobotics.roadrunner.MecanumKinematics;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Time;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.anime.BaseOpMode;
 import org.firstinspires.ftc.teamcode.anime.PoseStorage;
+import org.opencv.core.Mat;
 
 import java.util.logging.Logger;
 
@@ -33,30 +36,35 @@ public class AnimeTeleOp extends BaseOpMode {
     }
 
     private void shouldGoToBasket() {
-        if(gamepad1.right_trigger > 0.5) {
-            this.robot.goToBasket();
-        }
+//        if(gamepad1.right_trigger > 0.5) {
+//            this.robot.goToBasket();
+//        }
     }
 
     private void handleMecanum() {
 
-        double g1ly = -gamepad1.left_stick_y;
-        double g1lx = -gamepad1.left_stick_x;
-        double g1rx = -gamepad1.right_stick_x;
-        if (gamepad1.left_stick_button) {
+        double g1ly = -(gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y));
+        double g1lx = -(gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x));
+        double g1rx = -(gamepad1.right_stick_x * Math.abs(gamepad1.right_stick_x));
+        if (gamepad1.right_trigger > 0) {
             g1ly *= SLOW_RUN_MULTIPLIER;
             g1lx *= SLOW_RUN_MULTIPLIER;
             g1rx *= SLOW_RUN_MULTIPLIER;
         }
 
-        this.robot.getDrive().setDrivePowers(new PoseVelocity2d(
+        MecanumKinematics.WheelVelocities<Time> wheelVels = this.robot.getDrive().setDrivePowers(new PoseVelocity2d(
                 new Vector2d(
                         g1ly,
                         g1lx
                 ),
                 g1rx
         ));
-
+        telemetry.addData("Wheel Velocities", String.format("LF: %.2f, RF: %.2f, LB: %.2f, RB: %.2f",
+                wheelVels.leftFront.get(0),
+                wheelVels.rightFront.get(0),
+                wheelVels.leftBack.get(0),
+                wheelVels.rightBack.get(0)
+        ));
         this.robot.getDrive().updatePoseEstimate();
 //        TelemetryPacket packet = new TelemetryPacket();
 //        packet.fieldOverlay().setStroke("#3F51B5");

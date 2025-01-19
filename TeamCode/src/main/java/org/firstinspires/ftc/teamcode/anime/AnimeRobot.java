@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.PinpointDrive;
 import org.firstinspires.ftc.teamcode.roadrunner.SparkFunOTOSDrive;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Logger;
 
 
@@ -30,7 +31,7 @@ public class AnimeRobot {
     public static final RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection =
             RevHubOrientationOnRobot.LogoFacingDirection.DOWN;
     public static final RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
-            RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
+            RevHubOrientationOnRobot.UsbFacingDirection.RIGHT;
     private static Logger log = Logger.getLogger(AnimeRobot.class.getName());
     IMU imu;
     HardwareMap hardwareMap;
@@ -42,6 +43,7 @@ public class AnimeRobot {
     private Lift lift;
 
     public AnimeRobot(LinearOpMode opMode, Pose2d beginPose) {
+        log.info("Initializing AnimeRobot, pool size:" + ForkJoinPool.getCommonPoolParallelism());
         this.opMode = opMode;
         this.hardwareMap = opMode.hardwareMap;
 

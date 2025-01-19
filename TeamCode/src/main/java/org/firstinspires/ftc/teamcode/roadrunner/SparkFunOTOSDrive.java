@@ -15,8 +15,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.anime.Lift;
 import org.firstinspires.ftc.teamcode.anime.PoseStorage;
 import org.firstinspires.ftc.teamcode.roadrunner.messages.PoseMessage;
+
+import java.util.logging.Logger;
 
 /**
  * Experimental extension of MecanumDrive that uses the SparkFun OTOS sensor for localization.
@@ -26,6 +29,8 @@ import org.firstinspires.ftc.teamcode.roadrunner.messages.PoseMessage;
  * Unless otherwise noted, comments are from SparkFun
  */
 public class SparkFunOTOSDrive extends MecanumDrive {
+    private static Logger log = Logger.getLogger(SparkFunOTOSDrive.class.getName());
+
     public static SparkFunOTOSDrive.Params PARAMS = new SparkFunOTOSDrive.Params();
     private final DownsampledWriter estimatedPoseWriter = new DownsampledWriter("ESTIMATED_POSE", 50_000_000);
     public SparkFunOTOSCorrected otos;
@@ -95,7 +100,7 @@ public class SparkFunOTOSDrive extends MecanumDrive {
         pose = OTOSPoseToRRPose(otosPose);
         PoseStorage.currentPose = this.pose;
         lastOtosPose = pose;
-
+//        log.info("OTOS pose: " + pose);
         // RR standard
         poseHistory.add(pose);
         while (poseHistory.size() > 100) {
@@ -123,7 +128,7 @@ public class SparkFunOTOSDrive extends MecanumDrive {
         // tweaked slightly to compensate for imperfect mounting (eg. 1.3 degrees).
 
         // RR localizer note: These units are inches and radians.
-        public SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, Math.toRadians(0));
+        public SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 5, Math.toRadians(90));
 
         // Here we can set the linear and angular scalars, which can compensate for
         // scaling issues with the sensor measurements. Note that as of firmware
@@ -142,7 +147,7 @@ public class SparkFunOTOSDrive extends MecanumDrive {
         // inverse of the error. For example, if you move the robot 100 inches and
         // the sensor reports 103 inches, set the linear scalar to 100/103 = 0.971
         public double linearScalar = 1.0;
-        public double angularScalar = 1.0;
+        public double angularScalar = 0.996;
     }
 
 

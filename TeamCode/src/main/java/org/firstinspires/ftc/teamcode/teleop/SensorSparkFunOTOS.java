@@ -45,6 +45,8 @@ public class SensorSparkFunOTOS extends LinearOpMode {
             // Get the latest position, which includes the x and y coordinates, plus the
             // heading angle
             SparkFunOTOS.Pose2D pos = myOtos.getPosition();
+            SparkFunOTOS.Pose2D vel = myOtos.getVelocity();
+            SparkFunOTOS.Pose2D acc = myOtos.getAcceleration();
 
             // Reset the tracking if the user requests it
             if (gamepad1.y) {
@@ -62,9 +64,9 @@ public class SensorSparkFunOTOS extends LinearOpMode {
             telemetry.addLine();
 
             // Log the position to the telemetry
-            telemetry.addData("X coordinate", pos.x);
-            telemetry.addData("Y coordinate", pos.y);
-            telemetry.addData("Heading angle", pos.h);
+            telemetry.addData("Pos X, Y, H", "%.2f, %.2f, %.2f", pos.x, pos.y, pos.h);
+            telemetry.addData("Vel X, Y, H", "%.2f, %.2f, %.2f", vel.x, vel.y, vel.h);
+            telemetry.addData("Acc X, Y, H", "%.2f, %.2f, %.2f", acc.x, acc.y, acc.h);
 
             // Update the telemetry on the driver station
             telemetry.update();

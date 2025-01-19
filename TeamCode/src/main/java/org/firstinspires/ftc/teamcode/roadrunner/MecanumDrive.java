@@ -88,7 +88,7 @@ public class MecanumDrive {
     public Pose2d pose;
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
         this.pose = pose;
-        //LynxFirmware.throwIfModulesAreOutdated(hardwareMap); // rambabu update frimware
+        LynxFirmware.throwIfModulesAreOutdated(hardwareMap); // rambabu update frimware
 
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
@@ -126,7 +126,7 @@ public class MecanumDrive {
         return pose;
     }
 
-    public void setDrivePowers(PoseVelocity2d powers) {
+    public MecanumKinematics.WheelVelocities<Time> setDrivePowers(PoseVelocity2d powers) {
         MecanumKinematics.WheelVelocities<Time> wheelVels = new MecanumKinematics(1).inverse(
                 PoseVelocity2dDual.constant(powers, 1));
 
@@ -139,6 +139,7 @@ public class MecanumDrive {
         leftBack.setPower(wheelVels.leftBack.get(0) / maxPowerMag);
         rightBack.setPower(wheelVels.rightBack.get(0) / maxPowerMag);
         rightFront.setPower(wheelVels.rightFront.get(0) / maxPowerMag);
+        return wheelVels;
     }
 
     public PoseVelocity2d updatePoseEstimate() {
@@ -200,13 +201,13 @@ public class MecanumDrive {
 
         // drive model parameters
         public double inPerTick = 1; // If you're using OTOS/Pinpoint leave this at 1 (all values will be in inches, 1 tick = 1 inch)
-        public double lateralInPerTick = 0.5420814706434053; // Tune this with LateralRampLogger (even if you use OTOS/Pinpoint)
-        public double trackWidthTicks = 15.916549324937566; //13.616549324937566 from test
+        public double lateralInPerTick = 0.225636288660424; //0.5420814706434053; // Tune this with LateralRampLogger (even if you use OTOS/Pinpoint)
+        public double trackWidthTicks = -6.843060511669435; //15.916549324937566; //13.616549324937566 from test
 
         // feedforward parameters (in tick units)
-        public double kS = 0.9704914853652244;
-        public double kV = 0.20355457661841048;
-        public double kA = 0.001;
+        public double kS = 2.1805405727108775; //0.9704914853652244;
+        public double kV = -0.21885059126838366; //0.20355457661841048;
+        public double kA = 0; //0.001;
 
         // path profile parameters (in inches)
         public double maxWheelVel = 50;
@@ -218,9 +219,9 @@ public class MecanumDrive {
         public double maxAngAccel = Math.PI;
 
         // path controller gains
-        public double axialGain = 3;
-        public double lateralGain = 3;
-        public double headingGain = 3; // shared with turn
+        public double axialGain = 0; //3;
+        public double lateralGain = 0; //3;
+        public double headingGain = 0; //3; // shared with turn
 
         public double axialVelGain = 0.0;
         public double lateralVelGain = 0.0;

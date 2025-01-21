@@ -65,6 +65,8 @@ public class AnimeTeleOp extends BaseOpMode {
                 wheelVels.leftBack.get(0),
                 wheelVels.rightBack.get(0)
         ));
+        Pose2d pose = this.robot.getDrive().getPose();
+        telemetry.addData("Pose", String.format("X: %.2f, Y: %.2f, H: %.2f", pose.position.x, pose.position.y, Math.toDegrees(pose.heading.toDouble())));
         this.robot.getDrive().updatePoseEstimate();
 //        TelemetryPacket packet = new TelemetryPacket();
 //        packet.fieldOverlay().setStroke("#3F51B5");

@@ -1,11 +1,15 @@
 package org.firstinspires.ftc.teamcode.anime;
 
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.util.Range;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class ColorUtility {
+
+    private static Logger log = Logger.getLogger(ColorUtility.class.getName());
 
     public enum Color {
         UNKNOWN, RED, BLUE, YELLOW, GRAY
@@ -19,11 +23,25 @@ public class ColorUtility {
     }
 
     public static Color getColorName(NormalizedRGBA colors) {
-        return getColorName(
-                (int)colors.red*255,
-                (int)colors.green*255,
-                (int)colors.blue*255
-        );
+//        float scale = 256; int min = 0, max = 255;
+//        return getColorName(
+//                Range.clip((int)((colors.red   * scale * scale)), min, max),
+//                Range.clip((int)((colors.red   * scale * scale)), min, max),
+//                Range.clip((int)((colors.red   * scale * scale)), min, max)
+//        );
+        return getColorName_v2(colors.red, colors.green, colors.blue);
+    }
+
+    public static Color getColorName_v2(double r, double g, double b) {
+        if(r > g && r > b) {
+            return Color.RED;
+        } else if(b > r && b > g) {
+            return Color.BLUE;
+        } else if(g > r && r > b) {
+           return Color.YELLOW;
+        } else {
+            return Color.GRAY;
+        }
     }
 
     public static Color getColorName(int r, int g, int b) {

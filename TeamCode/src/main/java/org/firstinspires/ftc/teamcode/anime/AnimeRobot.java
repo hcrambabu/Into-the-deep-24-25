@@ -33,6 +33,8 @@ public class AnimeRobot {
     public static final RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
             RevHubOrientationOnRobot.UsbFacingDirection.RIGHT;
     private static Logger log = Logger.getLogger(AnimeRobot.class.getName());
+
+    DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
     IMU imu;
     HardwareMap hardwareMap;
     private LinearOpMode opMode;
@@ -48,10 +50,31 @@ public class AnimeRobot {
         this.hardwareMap = opMode.hardwareMap;
 
         this.imu = hardwareMap.get(IMU.class, "imu");
-
-        this.drive = new SparkFunOTOSDrive(this.hardwareMap, beginPose);
+        this.setupDriveMotors();
+        this.drive = new PinpointDrive(this.hardwareMap, beginPose);
         this.lift = new Lift(this);
         this.intake = new Intake(this);
+    }
+
+
+    public void setupDriveMotors() {
+        this.frontLeftMotor = hardwareMap.get(DcMotorEx.class, "leftFront");
+        this.backLeftMotor = hardwareMap.get(DcMotorEx.class, "leftBack");
+        this.frontRightMotor = hardwareMap.get(DcMotorEx.class, "rightFront");
+        this.backRightMotor = hardwareMap.get(DcMotorEx.class, "rightBack");
+
+        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     public IMU getImu() {
         return imu;

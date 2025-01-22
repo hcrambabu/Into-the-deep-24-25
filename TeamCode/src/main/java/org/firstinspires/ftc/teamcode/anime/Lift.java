@@ -20,10 +20,14 @@ public class Lift {
     public static final int LOWER_LIFT_UP_POS = 4300;
     public static final int LOWER_LIFT_DOWN_POS = 1000;
     public static final int LOWER_LIFT_AUTO_POS = 475;
+    public static final int LOWER_LIFT_SPECIMEN_PICKUP_POS = 1425;
+    public static final int LOWER_LIFT_SPECIMEN_DROP_POS = 3100;
     public static final int UPPER_LIFT_MIN_POS = 0;
     public static final int UPPER_LIFT_UP_POS = 2000;
     public static final int UPPER_LIFT_DOWN_POS = 4300;
     public static final int UPPER_LIFT_AUTO_POS = 4240;
+    public static final int UPPER_LIFT_SPECIMEN_PICKUP_POS = 1397;
+    public static final int UPPER_LIFT_SPECIMEN_DROP_POS = 1800;
 
     private static Logger log = Logger.getLogger(Lift.class.getName());
     private AnimeRobot robot;
@@ -67,7 +71,7 @@ public class Lift {
         } // Wait little time for motors to start
         resetTimer.reset();
         log.info(String.format("Motor {%s} reset start... velocity {%.3f}", name, motor.getVelocity()));
-        while (resetTimer.seconds() < 5 && Math.abs(motor.getVelocity()) > 400) {
+        while (resetTimer.seconds() < 5 && Math.abs(motor.getVelocity()) > 800) {
             Thread.yield();
             log.info(String.format("In resetMotors {%s} ... Waiting for zero velocity ... velocity {%.3f}", name, motor.getVelocity()));
         }
@@ -101,19 +105,17 @@ public class Lift {
 
     public void handleKeyPress(Gamepad gamepad1, Gamepad gamepad2) {
 
-        if(AsyncUtility.isTaskDone(lowerLiftTask)) {
-            this.setLowerLiftPower(-gamepad2.left_stick_y);
-        }
-        if(gamepad2.left_stick_y == 0 && AsyncUtility.isTaskDone(upperLiftTask)) {
-            this.setUpperLiftPower(gamepad2.right_stick_x);
-        }
+        this.setLowerLiftPower(-gamepad2.left_stick_y);
+        this.setUpperLiftPower(gamepad2.right_stick_x);
 
-        if(gamepad2.right_stick_x == 0 && gamepad2.left_stick_y == 0) {
-            if (gamepad2.back) {
-                liftUp();
-            } else if (gamepad2.start) {
-                liftDown();
-            }
+        if (gamepad2.back) {
+            liftUp();
+        } else if (gamepad2.start) {
+            liftDown();
+        } else if (gamepad2.a) {
+            liftSpecimenPickup();
+        } else if (gamepad2.b) {
+            liftSpecimenDROP();
         }
 
         updateTelemetry();
@@ -171,6 +173,16 @@ public class Lift {
     public void liftHome() {
         this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_MIN_POS, 5));
         this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_MIN_POS, 5));
+    }
+
+    public void liftSpecimenPickup() {
+        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_SPECIMEN_PICKUP_POS, 5));
+        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_SPECIMEN_PICKUP_POS, 5));
+    }
+
+    public void liftSpecimenDROP() {
+        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_SPECIMEN_DROP_POS, 5));
+        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_SPECIMEN_DROP_POS, 5));
     }
 
     public Action liftHomeAction() {

@@ -72,13 +72,13 @@ public class MecanumDrive {
 
         // drive model parameters
         public double inPerTick = 1; // If you're using OTOS/Pinpoint leave this at 1 (all values will be in inches, 1 tick = 1 inch)
-        public double lateralInPerTick = 0.6233890117733849; // Tune this with LateralRampLogger (even if you use OTOS/Pinpoint)
-        public double trackWidthTicks = 9.030614868879814;
+        public double lateralInPerTick = 0.7738196216561812; // Tune this with LateralRampLogger (even if you use OTOS/Pinpoint)
+        public double trackWidthTicks = 8.445416326287248;
 
         // feedforward parameters (in tick units)
-        public double kS = 1.1137205032065811;
-        public double kV = 0.18752943035956438;
-        public double kA = 0.01;
+        public double kS = 1.426208369151964;
+        public double kV = 0.19788350761150583;
+        public double kA = 0.035;
 
         // path profile parameters (in inches)
         public double maxWheelVel = 50;
@@ -272,7 +272,7 @@ public class MecanumDrive {
     public final class FollowTrajectoryAction implements Action {
         public final TimeTrajectory timeTrajectory;
         private double beginTs = -1;
-
+        private boolean cancelled = false;
         private final double[] xPoints, yPoints;
 
         public FollowTrajectoryAction(TimeTrajectory t) {
@@ -300,7 +300,17 @@ public class MecanumDrive {
                 t = Actions.now() - beginTs;
             }
 
-            if (t >= timeTrajectory.duration) {
+            Pose2dDual<Time> txWorldTarget = timeTrajectory.get(t);
+            targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
+
+            PoseVelocity2d robotVelRobot = updatePoseEstimate();
+
+            Pose2d error = txWorldTarget.value().minusExp(pose);
+
+            if ((t >= timeTrajectory.duration
+                    && error.position.norm() < 2
+                    && robotVelRobot.linearVel.norm() < 0.5)
+                    || t >= timeTrajectory.duration + 1) {
                 leftFront.setPower(0);
                 leftBack.setPower(0);
                 rightBack.setPower(0);
@@ -309,10 +319,10 @@ public class MecanumDrive {
                 return false;
             }
 
-            Pose2dDual<Time> txWorldTarget = timeTrajectory.get(t);
-            targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
-
-            PoseVelocity2d robotVelRobot = updatePoseEstimate();
+//            Pose2dDual<Time> txWorldTarget = timeTrajectory.get(t);
+//            targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
+//
+//            PoseVelocity2d robotVelRobot = updatePoseEstimate();
 
             PoseVelocity2dDual<Time> command = new HolonomicController(
                     PARAMS.axialGain, PARAMS.lateralGain, PARAMS.headingGain,
@@ -343,7 +353,7 @@ public class MecanumDrive {
             p.put("y", pose.position.y);
             p.put("heading (deg)", Math.toDegrees(pose.heading.toDouble()));
 
-            Pose2d error = txWorldTarget.value().minusExp(pose);
+//            Pose2d error = txWorldTarget.value().minusExp(pose);
             p.put("xError", error.position.x);
             p.put("yError", error.position.y);
             p.put("headingError (deg)", Math.toDegrees(error.heading.toDouble()));
@@ -362,7 +372,7 @@ public class MecanumDrive {
             c.setStrokeWidth(1);
             c.strokePolyline(xPoints, yPoints);
 
-            return true;
+            return !cancelled;
         }
 
         @Override
@@ -370,6 +380,10 @@ public class MecanumDrive {
             c.setStroke("#4CAF507A");
             c.setStrokeWidth(1);
             c.strokePolyline(xPoints, yPoints);
+        }
+
+        public void cancelAbruptly() {
+            cancelled = true;
         }
     }
 

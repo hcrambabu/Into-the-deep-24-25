@@ -64,7 +64,9 @@ public class RedAutoLeft extends BaseOpMode {
                     new SequentialAction(
                             new ParallelAction(
                                     drive.actionBuilder(this.robot.getDrive().getPose())
-                                            .splineToLinearHeading(samplePose, Math.toRadians(180)).build()
+                                            .splineToLinearHeading(samplePose, Math.toRadians(180))
+                                            .turn(Math.toRadians(170))
+                                            .build()
                             ),
                             new ParallelAction(
                                     this.robot.getLift().liftAction(200, 4600)

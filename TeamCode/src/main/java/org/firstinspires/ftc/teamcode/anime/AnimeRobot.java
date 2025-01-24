@@ -11,12 +11,14 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.roadrunner.PinpointDrive;
 import org.firstinspires.ftc.teamcode.roadrunner.SparkFunOTOSDrive;
@@ -27,6 +29,8 @@ import java.util.logging.Logger;
 
 
 public class AnimeRobot {
+
+    public static final double SLOW_RUN_MULTIPLIER = 0.4;
 
     public static final RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection =
             RevHubOrientationOnRobot.LogoFacingDirection.DOWN;
@@ -71,10 +75,10 @@ public class AnimeRobot {
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     public IMU getImu() {
         return imu;
@@ -97,6 +101,45 @@ public class AnimeRobot {
 
     public Intake getIntake() {
         return intake;
+    }
+
+    public void  handleKeyPress(Gamepad gamepad1, Gamepad gamepad2) {
+        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+        double rx = gamepad1.right_stick_x;
+
+        if (gamepad1.right_trigger > 0.5) {
+            y *= SLOW_RUN_MULTIPLIER;
+            x *= SLOW_RUN_MULTIPLIER;
+            rx *= SLOW_RUN_MULTIPLIER;
+        }
+
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+        double frontLeftPower = (y + x + rx) / denominator;
+        double backLeftPower = (y - x + rx) / denominator;
+        double frontRightPower = (y - x - rx) / denominator;
+        double backRightPower = (y + x - rx) / denominator;
+
+        frontLeftMotor.setPower(frontLeftPower);
+        backLeftMotor.setPower(backLeftPower);
+        frontRightMotor.setPower(frontRightPower);
+        backRightMotor.setPower(backRightPower);
+
+        this.getOpMode().telemetry.addData("Wheel Powers", String.format("LF: %.2f, LB: %.2f, RF: %.2f, RB: %.2f",
+                frontLeftMotor.getPower(),
+                backLeftMotor.getPower(),
+                frontRightMotor.getPower(),
+                backRightMotor.getPower()
+        ));
+        this.getOpMode().telemetry.addData("Wheel Velocity", String.format("LF: %.2f, LB: %.2f, RF: %.2f, RB: %.2f",
+                frontLeftMotor.getVelocity(AngleUnit.DEGREES),
+                backLeftMotor.getVelocity(AngleUnit.DEGREES),
+                frontRightMotor.getVelocity(AngleUnit.DEGREES),
+                backRightMotor.getVelocity(AngleUnit.DEGREES)
+        ));
     }
 
     public Lift getLift() {

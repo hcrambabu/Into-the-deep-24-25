@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 @TeleOp(group = "Anime", name = "Anime: TeleOp")
 public class AnimeTeleOp extends BaseOpMode {
 
-    public static final double SLOW_RUN_MULTIPLIER = 0.2;
+
     private static Logger log = Logger.getLogger(AnimeTeleOp.class.getName());
 
     @Override
@@ -28,8 +28,9 @@ public class AnimeTeleOp extends BaseOpMode {
     }
 
     public void runLoop() throws InterruptedException {
-        handleMecanum();
-        shouldGoToBasket();
+        //handleMecanum();
+        //shouldGoToBasket();
+        this.robot.handleKeyPress(gamepad1, gamepad2);
         this.robot.getLift().handleKeyPress(gamepad1, gamepad2);
         this.robot.getIntake().handleKeyPress(gamepad1, gamepad2);
         updateTelemetry();
@@ -41,38 +42,38 @@ public class AnimeTeleOp extends BaseOpMode {
 //        }
     }
 
-    private void handleMecanum() {
-
-        double g1ly = -(gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y));
-        double g1lx = -(gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x));
-        double g1rx = -(gamepad1.right_stick_x * Math.abs(gamepad1.right_stick_x));
-        if (gamepad1.right_trigger > 0) {
-            g1ly *= SLOW_RUN_MULTIPLIER;
-            g1lx *= SLOW_RUN_MULTIPLIER;
-            g1rx *= SLOW_RUN_MULTIPLIER;
-        }
-
-        MecanumKinematics.WheelVelocities<Time> wheelVels = this.robot.getDrive().setDrivePowers(new PoseVelocity2d(
-                new Vector2d(
-                        g1ly,
-                        g1lx
-                ),
-                g1rx
-        ));
-        telemetry.addData("Wheel Velocities", String.format("LF: %.2f, RF: %.2f, LB: %.2f, RB: %.2f",
-                wheelVels.leftFront.get(0),
-                wheelVels.rightFront.get(0),
-                wheelVels.leftBack.get(0),
-                wheelVels.rightBack.get(0)
-        ));
-        Pose2d pose = this.robot.getDrive().getPose();
-        telemetry.addData("Pose", String.format("X: %.2f, Y: %.2f, H: %.2f", pose.position.x, pose.position.y, Math.toDegrees(pose.heading.toDouble())));
-        this.robot.getDrive().updatePoseEstimate();
-//        TelemetryPacket packet = new TelemetryPacket();
-//        packet.fieldOverlay().setStroke("#3F51B5");
-//        Drawing.drawRobot(packet.fieldOverlay(), drive.pose);
-//        FtcDashboard.getInstance().sendTelemetryPacket(packet);
-    }
+//    private void handleMecanum() {
+//
+//        double g1ly = -gamepad1.left_stick_y;
+//        double g1lx = -gamepad1.left_stick_x;
+//        double g1rx = -gamepad1.right_stick_x*0.2;
+//        if (gamepad1.right_trigger > 0) {
+//            g1ly *= SLOW_RUN_MULTIPLIER;
+//            g1lx *= SLOW_RUN_MULTIPLIER;
+//            g1rx *= SLOW_RUN_MULTIPLIER;
+//        }
+//
+//        MecanumKinematics.WheelVelocities<Time> wheelVels = this.robot.getDrive().setDrivePowers(new PoseVelocity2d(
+//                new Vector2d(
+//                        g1ly,
+//                        g1lx
+//                ),
+//                g1rx
+//        ));
+//        telemetry.addData("Wheel Velocities", String.format("LF: %.2f, RF: %.2f, LB: %.2f, RB: %.2f",
+//                wheelVels.leftFront.get(0),
+//                wheelVels.rightFront.get(0),
+//                wheelVels.leftBack.get(0),
+//                wheelVels.rightBack.get(0)
+//        ));
+//        Pose2d pose = this.robot.getDrive().getPose();
+//        telemetry.addData("Pose", String.format("X: %.2f, Y: %.2f, H: %.2f", pose.position.x, pose.position.y, Math.toDegrees(pose.heading.toDouble())));
+//        this.robot.getDrive().updatePoseEstimate();
+////        TelemetryPacket packet = new TelemetryPacket();
+////        packet.fieldOverlay().setStroke("#3F51B5");
+////        Drawing.drawRobot(packet.fieldOverlay(), drive.pose);
+////        FtcDashboard.getInstance().sendTelemetryPacket(packet);
+//    }
 
     @Override
     public void runOpMode() throws InterruptedException {

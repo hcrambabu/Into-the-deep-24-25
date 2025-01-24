@@ -69,7 +69,7 @@ public class RedAutoLeft extends BaseOpMode {
                                             .build()
                             ),
                             new ParallelAction(
-                                    this.robot.getLift().liftAction(200, 4600)
+                                    this.robot.getLift().liftAction(200, 2000)
                             ),
                             this.robot.getIntake().setIntakeServoPosAction(60, -0.25, 5),
                             this.robot.getIntake().startIntakeCRServoAction()

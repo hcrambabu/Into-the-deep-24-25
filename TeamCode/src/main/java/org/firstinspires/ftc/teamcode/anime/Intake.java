@@ -139,10 +139,10 @@ public class Intake {
             gotSample = false;
         }
 
-        if(gamepad2.a) {
-            int number = random.nextInt(200);
-            setIntakeServoPosAsync(number, 1.0, 5);
-        }
+//        if(gamepad2.a) {
+//            int number = random.nextInt(200);
+//            setIntakeServoPosAsync(number, 1.0, 5);
+//        }
 
         updateTelemetry();
     }

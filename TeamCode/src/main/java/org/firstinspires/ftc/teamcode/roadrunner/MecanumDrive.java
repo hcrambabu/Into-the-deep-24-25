@@ -72,12 +72,12 @@ public class MecanumDrive {
 
         // drive model parameters
         public double inPerTick = 1; // If you're using OTOS/Pinpoint leave this at 1 (all values will be in inches, 1 tick = 1 inch)
-        public double lateralInPerTick = 0.7738196216561812; // Tune this with LateralRampLogger (even if you use OTOS/Pinpoint)
-        public double trackWidthTicks = 8.445416326287248;
+        public double lateralInPerTick = 0.6750760234985953; // Tune this with LateralRampLogger (even if you use OTOS/Pinpoint)
+        public double trackWidthTicks = 9.29352664215422;
 
         // feedforward parameters (in tick units)
-        public double kS = 1.426208369151964;
-        public double kV = 0.19788350761150583;
+        public double kS = 1.4116433250771565;
+        public double kV = 0.17899076157958263;
         public double kA = 0.035;
 
         // path profile parameters (in inches)
@@ -255,6 +255,9 @@ public class MecanumDrive {
     public MecanumKinematics.WheelVelocities<Time> setDrivePowers(PoseVelocity2d powers) {
         MecanumKinematics.WheelVelocities<Time> wheelVels = new MecanumKinematics(1).inverse(
                 PoseVelocity2dDual.constant(powers, 1));
+
+//        MecanumKinematics.WheelVelocities<Time> wheelVels = kinematics.inverse(
+//                PoseVelocity2dDual.constant(powers, 1));
 
         double maxPowerMag = 1;
         for (DualNum<Time> power : wheelVels.all()) {

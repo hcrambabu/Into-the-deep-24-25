@@ -10,9 +10,9 @@ public abstract class BaseOpMode extends LinearOpMode {
     protected AnimeRobot robot;
     protected MecanumDrive drive;
 
-    public void initialize(Pose2d beginPose) {
+    public void initialize(Pose2d beginPose, boolean isTeleOp) {
         // Initialize the robot
-        this.robot = new AnimeRobot(this, beginPose);
+        this.robot = new AnimeRobot(this, beginPose, isTeleOp);
         this.drive = this.robot.getDrive();
     }
 }

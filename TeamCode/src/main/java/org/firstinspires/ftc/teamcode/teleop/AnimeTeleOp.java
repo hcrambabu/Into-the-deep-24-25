@@ -20,8 +20,8 @@ public class AnimeTeleOp extends BaseOpMode {
     private static Logger log = Logger.getLogger(AnimeTeleOp.class.getName());
 
     @Override
-    public void initialize(Pose2d beginPose) {
-        super.initialize(beginPose);
+    public void initialize(Pose2d beginPose,  boolean isTeleOp) {
+        super.initialize(beginPose, isTeleOp);
     }
 
     private void updateTelemetry() {
@@ -78,7 +78,7 @@ public class AnimeTeleOp extends BaseOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         log.info("Before initialize....");
-        this.initialize(PoseStorage.currentPose); // TODO get from autonomous pose
+        this.initialize(PoseStorage.currentPose, true); // TODO get from autonomous pose
         log.info("before Start....");
         telemetry.update();
         waitForStart();

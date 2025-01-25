@@ -48,7 +48,7 @@ public class AnimeRobot {
     private Intake intake;
     private Lift lift;
 
-    public AnimeRobot(LinearOpMode opMode, Pose2d beginPose) {
+    public AnimeRobot(LinearOpMode opMode, Pose2d beginPose, boolean isTeleOp) {
         log.info("Initializing AnimeRobot, pool size:" + ForkJoinPool.getCommonPoolParallelism());
         this.opMode = opMode;
         this.hardwareMap = opMode.hardwareMap;
@@ -56,7 +56,7 @@ public class AnimeRobot {
         this.imu = hardwareMap.get(IMU.class, "imu");
         this.setupDriveMotors();
         this.drive = new PinpointDrive(this.hardwareMap, beginPose);
-        this.lift = new Lift(this);
+        this.lift = new Lift(this, isTeleOp);
         this.intake = new Intake(this);
     }
 

@@ -33,7 +33,7 @@ public class RedAutoRight extends BaseOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d beginPose = new Pose2d(24, -64.5, Math.PI/2);
-        this.initialize(beginPose);
+        this.initialize(beginPose, false);
 
         VelConstraint pushVelConstraint = new VelConstraint() {
             @Override
@@ -120,14 +120,30 @@ public class RedAutoRight extends BaseOpMode {
             );
         }
 
+//        Actions.runBlocking(
+//                new SequentialAction(
+//                        drive.actionBuilder(beginPose)
+//                                .splineToLinearHeading(new Pose2d(64.5, -64.5, Math.toRadians(90)), Math.toRadians(0))
+//                                .build()
+//                )
+//        );
         Actions.runBlocking(
                 new SequentialAction(
                         drive.actionBuilder(beginPose)
-                                .splineToLinearHeading(new Pose2d(64.5, -64.5, Math.toRadians(90)), Math.toRadians(0))
+                                .splineToLinearHeading(new Pose2d(50, -10, Math.toRadians(40)), Math.toRadians(20))
+                                .turn(Math.toRadians(50))
                                 .build()
                 )
         );
 
+        Actions.runBlocking(
+                new SequentialAction(
+                        drive.actionBuilder(beginPose)
+                                .strafeTo(new Vector2d(64, -64))
+
+                                .build()
+                )
+        );
 
 //        Actions.runBlocking(
 //                new SequentialAction(

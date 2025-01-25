@@ -15,7 +15,7 @@ public class BlueAutoLeft extends BaseOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d beginPose = new Pose2d(24, 63, -Math.PI / 2);
-        this.initialize(beginPose);
+        this.initialize(beginPose, false);
 
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)

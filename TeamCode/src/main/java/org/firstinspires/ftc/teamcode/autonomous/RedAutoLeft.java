@@ -31,7 +31,7 @@ public class RedAutoLeft extends BaseOpMode {
         Pose2d beginPose = new Pose2d(-24, -64.5, Math.PI / 2);
         Pose2d basketPose = new Pose2d(-58, -62, Math.toRadians(45));
         Pose2d parking = new Pose2d(-24, -12, Math.toRadians(0));
-        this.initialize(beginPose);
+        this.initialize(beginPose, false);
 
         TrajectoryActionBuilder gotoBasket_1 = drive.actionBuilder(beginPose)
                 .splineToLinearHeading(basketPose, Math.toRadians(180));
@@ -55,7 +55,7 @@ public class RedAutoLeft extends BaseOpMode {
         );
         // Search For Samples
         Pose2d[] samplePoses = {
-                new Pose2d(-30, -36, Math.toRadians(172)),
+                new Pose2d(-20, -36, Math.toRadians(172)),
                 new Pose2d(-40, -36, Math.toRadians(172)),
                 new Pose2d(-50, -36, Math.toRadians(172))
         };
@@ -65,11 +65,12 @@ public class RedAutoLeft extends BaseOpMode {
                             new ParallelAction(
                                     drive.actionBuilder(this.robot.getDrive().getPose())
                                             .splineToLinearHeading(samplePose, Math.toRadians(180))
-                                            .turn(Math.toRadians(170))
+                                            .turn(Math.toRadians(-12))
+//                                            .turn(Math.toRadians(170))
                                             .build()
                             ),
                             new ParallelAction(
-                                    this.robot.getLift().liftAction(200, 2000)
+                                    this.robot.getLift().liftAction(250, 2000)
                             ),
                             this.robot.getIntake().setIntakeServoPosAction(60, -0.25, 5),
                             this.robot.getIntake().startIntakeCRServoAction()

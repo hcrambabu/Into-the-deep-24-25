@@ -14,7 +14,7 @@ public class BlueAutoRight extends BaseOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d beginPose = new Pose2d(-24, 61, Math.toRadians(270));
-        this.initialize(beginPose);
+        this.initialize(beginPose, false);
 
         waitForStart();
         Actions.runBlocking(

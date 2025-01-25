@@ -22,7 +22,8 @@ public class Lift {
     public static final int LOWER_LIFT_UP_POS = 2106;
     public static final int LOWER_LIFT_DOWN_POS = 500;
     public static final int LOWER_LIFT_SPECIMEN_PICKUP_POS = 672;
-    public static final int LOWER_LIFT_SPECIMEN_DROP_POS = 1510;
+    public static final int LOWER_LIFT_SPECIMEN_DROP_POS = 1500;
+    public static final int LOWER_LIFT_SPECIMEN_DROP_POS_2 = 1100;
 
     public static final double LOWER_LIFT_MIN_POWER = 0.05;
     public static final int UPPER_LIFT_MIN_POS = 0;
@@ -30,6 +31,9 @@ public class Lift {
     public static final int UPPER_LIFT_DOWN_POS = 2000;
     public static final int UPPER_LIFT_SPECIMEN_PICKUP_POS = 878;
     public static final int UPPER_LIFT_SPECIMEN_DROP_POS = 864;
+    public static final int UPPER_LIFT_SPECIMEN_DROP_POS_2 = 764;
+
+    public static final double RUN_TO_POS_TIMEOUT = 2;
 
     private static Logger log = Logger.getLogger(Lift.class.getName());
     private AnimeRobot robot;
@@ -44,7 +48,13 @@ public class Lift {
 
     private DcMotor.RunMode runMode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 
-    public Lift(AnimeRobot robot) {
+    private boolean isTeleOp = false;
+
+    public Lift(AnimeRobot robot, boolean isTeleOp) {
+        this.isTeleOp = isTeleOp;
+        if(!isTeleOp) {
+            this.runMode = DcMotor.RunMode.RUN_TO_POSITION;
+        }
         this.robot = robot;
         this.telemetry = this.robot.getOpMode().telemetry;
         this.hardwareMap = this.robot.getHardwareMap();
@@ -109,11 +119,26 @@ public class Lift {
     }
 
     public void holdLowerLift() {
-        if(this.getActualLowerLiftPos() < LOWER_LIFT_UP_POS) {
-            this.setLowerLiftPower(LOWER_LIFT_MIN_POWER);
-        } else {
-            this.setLowerLiftPower(-LOWER_LIFT_MIN_POWER);
+        this.setLowerLiftPower(getLowerLiftHoldPower(this.getActualLowerLiftPos()));
+    }
+
+    public double getLowerLiftHoldPower(int pos) {
+        if(this.runMode == DcMotor.RunMode.RUN_TO_POSITION) {
+            return 1;
         }
+
+        if(pos < LOWER_LIFT_UP_POS) {
+            return LOWER_LIFT_MIN_POWER;
+        } else {
+            return -LOWER_LIFT_MIN_POWER;
+        }
+    }
+
+    public double getUpperHoldPower(int pos) {
+        if(this.runMode == DcMotor.RunMode.RUN_TO_POSITION) {
+            return 1;
+        }
+        return 0;
     }
 
     public void handleKeyPress(Gamepad gamepad1, Gamepad gamepad2) {
@@ -153,8 +178,14 @@ public class Lift {
 
     public void gotoPosition(String name, DcMotorEx motor, int pos, double timeoutSec) {
         int numTries = 0;
-        while(numTries < 2 && Math.abs(motor.getCurrentPosition() - pos) > 10) {
+        while(numTries < 1 && Math.abs(motor.getCurrentPosition() - pos) > 10) {
             numTries++;
+
+            double endPower = getUpperHoldPower(pos);
+            if ("lower".equals(name)) {
+                endPower = getLowerLiftHoldPower(pos);
+            }
+
             motor.setTargetPosition(pos);
             motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             motor.setPower(1);
@@ -163,15 +194,11 @@ public class Lift {
                 motor.setPower(1);
                 Thread.yield();
             }
-            if ("lower".equals(name)) {
-                holdLowerLift();
-            } else {
-                motor.setPower(0);
-            }
+            motor.setPower(endPower);
+            motor.setMode(runMode);
+
             log.info(String.format("Motor {%s} goToPositionTask complete.. {%d} -- {%d} -- time diff: {%d}",
                     name, pos, motor.getCurrentPosition(), (long) (timeout - System.currentTimeMillis())));
-
-            motor.setMode(runMode);
         }
     }
 
@@ -182,8 +209,8 @@ public class Lift {
     }
 
     public void liftUp() {
-        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_UP_POS, 5));
-        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_UP_POS, 5));
+        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_UP_POS, RUN_TO_POS_TIMEOUT));
+        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_UP_POS, RUN_TO_POS_TIMEOUT));
     }
 
     public Action liftUpAction() {
@@ -191,8 +218,8 @@ public class Lift {
     }
 
     public void liftDown() {
-        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_DOWN_POS, 5));
-        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_DOWN_POS, 5));
+        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_DOWN_POS, RUN_TO_POS_TIMEOUT));
+        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_DOWN_POS, RUN_TO_POS_TIMEOUT));
     }
 
     public Action liftDownAction() {
@@ -200,18 +227,18 @@ public class Lift {
     }
 
     public void liftHome() {
-        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_MIN_POS, 5));
-        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_MIN_POS, 5));
+        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_MIN_POS, RUN_TO_POS_TIMEOUT));
+        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_MIN_POS, RUN_TO_POS_TIMEOUT));
     }
 
     public void liftSpecimenPickup() {
-        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_SPECIMEN_PICKUP_POS, 5));
-        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_SPECIMEN_PICKUP_POS, 5));
+        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_SPECIMEN_PICKUP_POS, RUN_TO_POS_TIMEOUT));
+        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_SPECIMEN_PICKUP_POS, RUN_TO_POS_TIMEOUT));
     }
 
     public void liftSpecimenDROP() {
-        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_SPECIMEN_DROP_POS, 5));
-        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_SPECIMEN_DROP_POS, 5));
+        this.lowerLiftTask = AsyncUtility.createAsyncTask(lowerLiftTask, goToPositionTask("lower", lowerLiftMotor, LOWER_LIFT_SPECIMEN_DROP_POS, RUN_TO_POS_TIMEOUT));
+        this.upperLiftTask = AsyncUtility.createAsyncTask(upperLiftTask, goToPositionTask("upper", upperLiftMotor, UPPER_LIFT_SPECIMEN_DROP_POS, RUN_TO_POS_TIMEOUT));
     }
 
     public Action liftHomeAction() {

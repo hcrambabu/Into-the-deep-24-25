@@ -18,8 +18,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.anime.BaseOpMode;
 import org.firstinspires.ftc.teamcode.anime.ColorUtility;
 
-//@Autonomous(group = "Anime", name = "Left")
-@TeleOp(group = "Anime", name = "Left")
+@Autonomous(group = "Anime", name = "Left")
+//@TeleOp(group = "Anime", name = "Left")
 public class RedAutoLeft extends BaseOpMode {
     public static final double TIME_GAP_FOR_LIFT = 0.2;
     public static final double TIME_FACT = 2;

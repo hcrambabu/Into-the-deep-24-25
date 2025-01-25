@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.IntSupplier;
 import java.util.logging.Logger;
 
 public class Lift {
@@ -20,7 +21,7 @@ public class Lift {
     public static final int LOWER_LIFT_MIN_POS = 0;
     public static final int LOWER_LIFT_UP_POS = 2106;
     public static final int LOWER_LIFT_DOWN_POS = 500;
-    public static final int LOWER_LIFT_SPECIMEN_PICKUP_POS = 572;
+    public static final int LOWER_LIFT_SPECIMEN_PICKUP_POS = 672;
     public static final int LOWER_LIFT_SPECIMEN_DROP_POS = 1510;
 
     public static final double LOWER_LIFT_MIN_POWER = 0.05;
@@ -41,6 +42,8 @@ public class Lift {
 
     private ElapsedTime resetTimer = new ElapsedTime();
 
+    private DcMotor.RunMode runMode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
+
     public Lift(AnimeRobot robot) {
         this.robot = robot;
         this.telemetry = this.robot.getOpMode().telemetry;
@@ -54,9 +57,10 @@ public class Lift {
         //this.upperLiftMotor.setDirection(DcMotor.Direction.REVERSE);
         this.lowerLiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.upperLiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        this.lowerLiftMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        this.upperLiftMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
         resetLift();
+        this.lowerLiftMotor.setMode(runMode);
+        this.upperLiftMotor.setMode(runMode);
     }
 
     public void resetLift() {
@@ -79,7 +83,7 @@ public class Lift {
 
         motor.setPower(0);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor.setMode(runMode);
         log.info(String.format("Motor {%s} reset complete", name));
     }
 
@@ -147,30 +151,33 @@ public class Lift {
         this.telemetry.addData("specimenColor", ColorUtility.getColorName(this.specimenColorSensor.getNormalizedColors()).name());
     }
 
+    public void gotoPosition(String name, DcMotorEx motor, int pos, double timeoutSec) {
+        int numTries = 0;
+        while(numTries < 2 && Math.abs(motor.getCurrentPosition() - pos) > 10) {
+            numTries++;
+            motor.setTargetPosition(pos);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setPower(1);
+            long timeout = System.currentTimeMillis() + (long) (timeoutSec * 1000);
+            while (motor.isBusy() && System.currentTimeMillis() < timeout) {
+                motor.setPower(1);
+                Thread.yield();
+            }
+            if ("lower".equals(name)) {
+                holdLowerLift();
+            } else {
+                motor.setPower(0);
+            }
+            log.info(String.format("Motor {%s} goToPositionTask complete.. {%d} -- {%d} -- time diff: {%d}",
+                    name, pos, motor.getCurrentPosition(), (long) (timeout - System.currentTimeMillis())));
+
+            motor.setMode(runMode);
+        }
+    }
+
     public Runnable goToPositionTask(String name, DcMotorEx motor, int pos, double timeoutSec) {
         return () -> {
-            int numTries = 0;
-            while(numTries < 3 && Math.abs(motor.getCurrentPosition() - pos) > 200) {
-                numTries++;
-                motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                motor.setTargetPosition(pos);
-                motor.setPower(1);
-                long timeout = System.currentTimeMillis() + (long) (timeoutSec * 1000);
-                while (motor.isBusy() && System.currentTimeMillis() < timeout) {
-                    motor.setPower(1);
-                    Thread.yield();
-                }
-                if("lower".equals(name)) {
-                    holdLowerLift();
-                } else {
-                    motor.setPower(0);
-                }
-                log.info(String.format("Motor {%s} goToPositionTask complete.. {%d} -- {%d} -- time diff: {%d}",
-                        name, pos, motor.getCurrentPosition(), (long) (timeout - System.currentTimeMillis())));
-
-                motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            }
+            gotoPosition(name, motor, pos, timeoutSec);
         };
     }
 

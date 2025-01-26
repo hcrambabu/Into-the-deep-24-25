@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 public class AnimeRobot {
 
     public static final double SLOW_RUN_MULTIPLIER = 0.4;
+    public static final double SUPER_SLOW_RUN_MULTIPLIER = 0.2;
 
     public static final RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection =
             RevHubOrientationOnRobot.LogoFacingDirection.DOWN;
@@ -112,6 +113,10 @@ public class AnimeRobot {
             y *= SLOW_RUN_MULTIPLIER;
             x *= SLOW_RUN_MULTIPLIER;
             rx *= SLOW_RUN_MULTIPLIER;
+        } else if (gamepad1.left_trigger > 0.5) {
+            y *= SUPER_SLOW_RUN_MULTIPLIER;
+            x *= SUPER_SLOW_RUN_MULTIPLIER;
+            rx *= SUPER_SLOW_RUN_MULTIPLIER;
         }
 
         // Denominator is the largest motor power (absolute value) or 1

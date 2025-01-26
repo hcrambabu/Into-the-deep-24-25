@@ -159,12 +159,13 @@ public class Intake {
         this.intakeLiftTask = AsyncUtility.createAsyncTask(this.intakeLiftTask, intakeLiftGotTheSample());
     }
 
-    public Runnable setIntakeServoPosTask(double pos, double power, double timeoutSec) {
+    public Runnable setIntakeServoPosTask(double pos, double powerIn, double timeoutSec) {
         return () -> {
             double currentPos = getIntakeActPos();
             double prevDistance = 361;
             double distance = 360;
             int powerAdjusted = 0;
+            double power = powerIn;
 
             long timeout = System.currentTimeMillis() + (long) (timeoutSec * 1000);
             this.intakeLiftServo.setPower(power);
@@ -188,7 +189,8 @@ public class Intake {
                                 pos, getIntakeActPos(), power, ((timeout-System.currentTimeMillis())/1000.0)));
                         break;
                     } else {
-                        this.intakeLiftServo.setPower(-power/2);
+                        power = -power/2;
+                        this.intakeLiftServo.setPower(power);
                         powerAdjusted++;
                         prevDistance = 361;
                     }

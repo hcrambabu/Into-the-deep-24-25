@@ -2,6 +2,10 @@ package org.firstinspires.ftc.teamcode.autonomous;
 
 import static org.firstinspires.ftc.teamcode.anime.Intake.INTAKE_SERVO_BACK_POS;
 import static org.firstinspires.ftc.teamcode.anime.Intake.INTAKE_SERVO_START_POS;
+import static org.firstinspires.ftc.teamcode.anime.Lift.LOWER_LIFT_SPECIMEN_PICKUP_POS;
+import static org.firstinspires.ftc.teamcode.anime.Lift.LOWER_LIFT_UP_POS;
+import static org.firstinspires.ftc.teamcode.anime.Lift.UPPER_LIFT_SPECIMEN_PICKUP_POS;
+import static org.firstinspires.ftc.teamcode.anime.Lift.UPPER_LIFT_UP_POS;
 
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -29,7 +33,7 @@ public class RedAutoLeft extends BaseOpMode {
     public void runOpMode() throws InterruptedException {
 
         Pose2d beginPose = new Pose2d(-24, -64.5, Math.PI / 2);
-        Pose2d basketPose = new Pose2d(-58, -62, Math.toRadians(45));
+        Pose2d basketPose = new Pose2d(-58.5, -62, Math.toRadians(45));
         Pose2d parking = new Pose2d(-24, -12, Math.toRadians(0));
         this.initialize(beginPose, false);
 
@@ -54,25 +58,27 @@ public class RedAutoLeft extends BaseOpMode {
                 )
         );
         // Search For Samples
+        int angle = 133; // Initial angle
         Pose2d[] samplePoses = {
-                new Pose2d(-20, -36, Math.toRadians(172)),
-                new Pose2d(-40, -36, Math.toRadians(172)),
-                new Pose2d(-50, -36, Math.toRadians(172))
+                new Pose2d(-20, -38, Math.toRadians(172)),
+                new Pose2d(-30, -38, Math.toRadians(172)),
+                new Pose2d(-40, -38, Math.toRadians(172))
         };
+
         for (Pose2d samplePose : samplePoses) {
             Actions.runBlocking(
                     new SequentialAction(
                             new ParallelAction(
                                     drive.actionBuilder(this.robot.getDrive().getPose())
                                             .splineToLinearHeading(samplePose, Math.toRadians(180))
-                                            .turn(Math.toRadians(-12))
-//                                            .turn(Math.toRadians(170))
+                                            .turn(Math.toRadians(-11.5))
                                             .build()
                             ),
                             new ParallelAction(
                                     this.robot.getLift().liftAction(250, 2000)
                             ),
-                            this.robot.getIntake().setIntakeServoPosAction(60, -0.25, 5),
+
+                            this.robot.getIntake().setIntakeServoPosAction(135, -0.20, 5),
                             this.robot.getIntake().startIntakeCRServoAction()
                     )
             );
@@ -84,7 +90,9 @@ public class RedAutoLeft extends BaseOpMode {
                                 new ParallelAction(
                                         drive.actionBuilder(this.robot.getDrive().getPose())
                                                 .splineToLinearHeading(basketPose, Math.toRadians(180)).build(),
-                                        this.robot.getLift().liftUpAction(),
+
+                                        gotoBasket_1.build(),
+                                        this.robot.getLift().liftAction(LOWER_LIFT_UP_POS, UPPER_LIFT_UP_POS+200),
                                         new SequentialAction(
                                                 new SleepAction(0.5),
                                                 this.robot.getIntake().setIntakeServoPosAction(INTAKE_SERVO_BACK_POS, -0.5, 5)
